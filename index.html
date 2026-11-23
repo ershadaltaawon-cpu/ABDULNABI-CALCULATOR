@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>حاسبة التعاون للمعدل الفصلي والتراكمي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1b4332;
+            --secondary: #2d6a4f;
+            --accent: #52b788;
+            --text-dark: #1f2937;
+            --text-muted: #6b7280;
+            --danger: #b91c1c;
+            --warning: #b45309;
+            --radius: 14px;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, #eef6f2 0%, #e6f0f5 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 820px;
+            background: #ffffff;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid rgba(82, 183, 136, 0.25);
+            margin-bottom: 16px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #ffffff;
+            padding: 20px 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .school-logo {
+            width: 62px;
+            height: 62px;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.6rem;
+            border: 3px solid var(--accent);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        header h1 {
+            font-size: 1.35rem;
+            font-weight: 900;
+            line-height: 1.3;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            opacity: 0.92;
+        }
+
+        .content {
+            padding: 16px;
+        }
+
+        .step-section {
+            display: none;
+        }
+
+        .step-section.active {
+            display: block;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 7px;
+            background: linear-gradient(135deg, #1b4332, #2d6a4f);
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 14px rgba(27, 67, 50, 0.18);
+        }
+
+        .dash-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 4px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .dash-card .label {
+            font-size: 0.65rem;
+            opacity: 0.9;
+            margin-bottom: 3px;
+        }
+
+        .dash-card .value {
+            font-size: 0.92rem;
+            font-weight: 900;
+            color: #80ed99;
+        }
+
+        .dash-card .sub-value {
+            font-size: 0.68rem;
+            color: #e2e8f0;
+            margin-top: 2px;
+            font-weight: 700;
+        }
+
+        .sem-nav-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+        }
+
+        .sem-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .sem-pill {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1.5px solid #cbd5e1;
+            background: #ffffff;
+            color: var(--text-dark);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sem-pill.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .sem-pill:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 11px 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 0.98rem;
+            background: #ffffff;
+            color: var(--text-dark);
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(82, 183, 136, 0.18);
+        }
+
+        input.input-missing {
+            border-color: var(--danger) !important;
+            background-color: #fef2f2 !important;
+            box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.15) !important;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: #ffffff;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(45, 106, 79, 0.2);
+            transition: transform 0.15s, opacity 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            box-shadow: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #b91c1c, #dc2626);
+            box-shadow: 0 4px 12px rgba(185, 28, 28, 0.22);
+        }
+
+        .btn-improve {
+            background: linear-gradient(135deg, #0369a1, #0284c7);
+            box-shadow: 0 4px 12px rgba(3, 105, 161, 0.2);
+            margin-top: 0;
+        }
+
+        .btn-extra {
+            background: linear-gradient(135deg, #0f766e, #14b8a6);
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
+            margin-top: 0;
+        }
+
+        .btn-whatsapp {
+            background: #25d366;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+        }
+
+        .action-btns-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .action-box {
+            background: #f0f9ff;
+            border: 1.5px solid #bae6fd;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+            display: none;
+        }
+
+        .action-box.open {
+            display: block;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .validation-banner {
+            background: #fef2f2;
+            border: 1.5px solid #fca5a5;
+            color: var(--danger);
+            padding: 11px 14px;
+            border-radius: 10px;
+            font-size: 0.86rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: none;
+            line-height: 1.6;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 14px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+            background: #ffffff;
+            font-size: 0.86rem;
+        }
+
+        th, td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #f1f8f5;
+            color: var(--primary);
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        tr.row-moved {
+            background-color: #fffbeb;
+            opacity: 0.85;
+        }
+
+        tr.row-improved {
+            background-color: #f0f9ff;
+        }
+
+        .grade-input {
+            width: 78px !important;
+            padding: 7px 6px !important;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.95rem !important;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .badge-empty { background: #f1f5f9; color: #64748b; }
+        .badge-excellent { background: #dcfce7; color: #166534; }
+        .badge-vgood { background: #d1fae5; color: #065f46; }
+        .badge-good { background: #e0f2fe; color: #075985; }
+        .badge-avg { background: #fef3c7; color: #92400e; }
+        .badge-pass { background: #ffedd5; color: #9a3412; }
+        .badge-fail { background: #fee2e2; color: #991b1b; }
+        .badge-moved { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+        .badge-imp-tag { background: #0284c7; color: #ffffff; font-size: 0.65rem; margin-right: 4px; }
+        .badge-extra-tag { background: #0f766e; color: #ffffff; font-size: 0.65rem; margin-right: 4px; }
+
+        .small-action-btn {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            padding: 3px 7px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        .error-msg {
+            color: var(--danger);
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-top: 3px;
+            display: none;
+        }
+
+        .summary-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+            line-height: 1.8;
+            font-size: 0.9rem;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 0.84rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-top: 14px;
+            padding: 12px 10px;
+            background: #e8f4f8;
+            border-radius: 8px;
+            line-height: 1.7;
+        }
+
+        .footer-author {
+            font-weight: 900;
+            color: #1b4332;
+            margin-bottom: 2px;
+        }
+
+        .footer-wishes {
+            font-weight: 700;
+            color: var(--secondary);
+            font-size: 0.82rem;
+        }
+
+        /* Custom Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(2px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 16px;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 430px;
+            border-radius: 16px;
+            padding: 22px 18px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
+            text-align: center;
+            border-top: 5px solid #f59e0b;
+        }
+
+        .modal-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: #fef3c7;
+            color: #d97706;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .modal-desc {
+            font-size: 0.9rem;
+            color: #4b5563;
+            line-height: 1.7;
+            margin-bottom: 18px;
+        }
+
+        .modal-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .modal-actions .btn {
+            margin-top: 0;
+            font-size: 0.88rem;
+            padding: 11px 10px;
+        }
+
+        @media (max-width: 680px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .action-btns-row {
+                grid-template-columns: 1fr;
+            }
+            header h1 {
+                font-size: 1.15rem;
+            }
+            .grade-input {
+                width: 68px !important;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .modal-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="school-logo">
+            <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+            <h1>حاسبة التعاون للمعدل الفصلي والتراكمي</h1>
+            <p>مدرسة التعاون الثانوية للبنين - مملكة البحرين</p>
+        </div>
+    </header>
+
+    <div class="content">
+        <!-- Live Dashboard -->
+        <div id="liveDashboard" class="dashboard-grid" style="display: none;">
+            <div class="dash-card">
+                <div class="label">المعدل الفصلي</div>
+                <div class="value" id="dashSemPct">0.0%</div>
+                <div class="sub-value" id="dashSemRating">-</div>
+            </div>
+            <div class="dash-card">
+                <div class="label">المعدل التراكمي</div>
+                <div class="value" id="dashCumPct">0.0%</div>
+                <div class="sub-value" id="dashCumRating">-</div>
+            </div>
+            <div class="dash-card">
+                <div class="label">التقدير العام</div>
+                <div class="value" id="dashOverallRating">-</div>
+                <div class="sub-value">التراكمي</div>
+            </div>
+            <div class="dash-card">
+                <div class="label">الساعات المجتازة</div>
+                <div class="value" id="dashPassedCr">0</div>
+                <div class="sub-value">من 156 ساعة</div>
+            </div>
+            <div class="dash-card">
+                <div class="label">غير المجتازة</div>
+                <div class="value" id="dashFailedCr" style="color: #fca5a5;">0</div>
+                <div class="sub-value">أقل من 50</div>
+            </div>
+            <div class="dash-card">
+                <div class="label">الساعات المتبقية</div>
+                <div class="value" id="dashRemainingCr" style="color: #fde68a;">156</div>
+                <div class="sub-value">للتخرج</div>
+            </div>
+        </div>
+
+        <!-- Step 1: Student Info -->
+        <div id="step1" class="step-section active">
+            <h2 style="margin-bottom: 12px; color: var(--primary); font-size: 1.1rem;">
+                <i class="fa-solid fa-user-graduate"></i> بيانات الطالب الأساسية
+            </h2>
+            <div class="form-group">
+                <label for="studentName">اسم الطالب الكامل:</label>
+                <input type="text" id="studentName" placeholder="أدخل اسم الطالب الثلاثي...">
+            </div>
+            <div class="form-group">
+                <label for="studentGroup">مجموعة توحيد المسارات (الفصل الأول والثاني):</label>
+                <select id="studentGroup">
+                    <option value="A">المجموعة أ</option>
+                    <option value="B">المجموعة ب</option>
+                </select>
+            </div>
+            <button type="button" class="btn" onclick="startUnifiedSemesters()">
+                البدء بإدخال علامات الفصل الأول <i class="fa-solid fa-arrow-left"></i>
+            </button>
+        </div>
+
+        <!-- Step Track Selection -->
+        <div id="stepTrackSelection" class="step-section">
+            <h2 style="margin-bottom: 10px; color: var(--primary); font-size: 1.1rem;">
+                <i class="fa-solid fa-route"></i> اختيار المسار التخصصي
+            </h2>
+            <p style="margin-bottom: 14px; font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+                أتممت إدخال علامات فصول توحيد المسارات (الأول والثاني). يرجى اختيار مسارك التخصصي للانتقال إلى الفصول (الثالث، الرابع، الخامس، السادس):
+            </p>
+            <div class="form-group">
+                <label for="studentTrack">المسار التخصصي:</label>
+                <select id="studentTrack">
+                    <option value="chem_bio">المسار العلمي (كيمياء - أحياء)</option>
+                    <option value="phys_math">المسار العلمي (فيزياء - رياضيات)</option>
+                    <option value="commercial">المسار التجاري</option>
+                    <option value="literary">المسار الأدبي (العلوم الإنسانية)</option>
+                </select>
+            </div>
+            <button type="button" class="btn" onclick="proceedToSpecializedSemesters()">
+                الانتقال إلى الفصل الثالث <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="navigateToSemester('sem2')">
+                <i class="fa-solid fa-arrow-right"></i> العودة إلى الفصل الثاني
+            </button>
+        </div>
+
+        <!-- Step 2: Semester Courses & Grades -->
+        <div id="step2" class="step-section">
+            <div class="sem-nav-bar">
+                <span style="font-size: 0.8rem; font-weight: 800; color: var(--primary);">
+                    <i class="fa-solid fa-compass"></i> التنقل بين الفصول:
+                </span>
+                <div class="sem-pills" id="semNavPills"></div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
+                <h2 id="currentSemHeading" style="color: var(--primary); font-size: 1.1rem;">الفصل الأول</h2>
+                <span id="trackBadge" style="font-size: 0.78rem; background: #e8f4f8; color: var(--primary); padding: 4px 10px; border-radius: 12px; font-weight: 700;"></span>
+            </div>
+
+            <!-- Improvement & Extra Course Controls (Semesters 2 to 6 ONLY) -->
+            <div id="improvementSectionWrapper" style="display: none;">
+                <div class="action-btns-row">
+                    <button type="button" class="btn btn-improve" onclick="toggleImprovementBox()">
+                        <i class="fa-solid fa-plus-circle"></i> تقديم طلب تحسين لمقرر من فصل سابق
+                    </button>
+                    <button type="button" class="btn btn-extra" onclick="toggleExtraCourseBox()">
+                        <i class="fa-solid fa-book-medical"></i> إضافة مقرر إضافي / تعلم ذاتي
+                    </button>
+                </div>
+
+                <div id="improveBox" class="action-box">
+                    <label for="improveCourseSelect">اختر المقرر المراد تحسينه (سيُحذف من فصله الأصلي ويُضاف هنا):</label>
+                    <select id="improveCourseSelect" style="margin-bottom: 10px;"></select>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn" style="margin-top: 0;" onclick="confirmAddImprovement()">
+                            <i class="fa-solid fa-check"></i> إضافة المقرر لهذا الفصل
+                        </button>
+                        <button type="button" class="btn btn-secondary" style="margin-top: 0;" onclick="toggleImprovementBox()">
+                            إلغاء
+                        </button>
+                    </div>
+                </div>
+
+                <div id="extraCourseBox" class="action-box" style="background: #f0fdfa; border-color: #99f6e4;">
+                    <label for="extraCoursePreset">اختر من المقررات الشائعة أو أدخل بيانات المقرر الإضافي:</label>
+                    <select id="extraCoursePreset" onchange="fillExtraCoursePreset()" style="margin-bottom: 10px;">
+                        <option value="">-- اختيار سريع (اختياري) --</option>
+                        <option value="وطن101|التربية للمواطنة وحقوق الإنسان (تعلم ذاتي)|2">وطن101 - التربية للمواطنة (تعلم ذاتي - 2 ساعة)</option>
+                        <option value="أجا102|الجغرافيا الاقتصادية|2">أجا102 - الجغرافيا الاقتصادية (2 ساعة)</option>
+                        <option value="عرب101|اللغة العربية 1|4">عرب101 - اللغة العربية 1 (4 ساعات)</option>
+                    </select>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 8px; margin-bottom: 10px;">
+                        <input type="text" id="extraCodeInput" placeholder="الرمز (مثال: وطن101)">
+                        <input type="text" id="extraNameInput" placeholder="اسم المقرر">
+                        <select id="extraCreditsInput">
+                            <option value="2">2 ساعة</option>
+                            <option value="4">4 ساعات</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn" style="margin-top: 0;" onclick="confirmAddExtraCourse()">
+                            <i class="fa-solid fa-check"></i> اعتماد المقرر الإضافي
+                        </button>
+                        <button type="button" class="btn btn-secondary" style="margin-top: 0;" onclick="toggleExtraCourseBox()">
+                            إلغاء
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="validationBanner" class="validation-banner"></div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الرمز</th>
+                            <th>اسم المقرر</th>
+                            <th>الساعات</th>
+                            <th>العلامة (0-100)</th>
+                            <th>الحالة والتقدير</th>
+                        </tr>
+                    </thead>
+                    <tbody id="coursesTableBody"></tbody>
+                </table>
+            </div>
+
+            <button type="button" class="btn" id="nextStepBtn" onclick="handleNextStep()">
+                حفظ والانتقال للفصل التالي <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="handlePrevStep()">
+                <i class="fa-solid fa-arrow-right"></i> رجوع
+            </button>
+        </div>
+
+        <!-- Step 3: Final Report -->
+        <div id="step3" class="step-section">
+            <h2 style="margin-bottom: 12px; color: var(--primary); font-size: 1.15rem;">
+                <i class="fa-solid fa-file-invoice"></i> التقرير النهائي للمعدل الفصلي والتراكمي
+            </h2>
+            <div id="finalSummaryBox" class="summary-card"></div>
+
+            <button type="button" class="btn btn-whatsapp" onclick="sendWhatsAppReport()">
+                <i class="fa-brands fa-whatsapp"></i> إرسال التقرير عبر واتساب
+            </button>
+            <button type="button" class="btn" onclick="returnFromReportToSemesters()">
+                <i class="fa-solid fa-pen-to-square"></i> العودة لتعديل الدرجات أو الفصول
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="resetAll()">
+                <i class="fa-solid fa-rotate-right"></i> بدء حساب جديد لطالب آخر
+            </button>
+        </div>
+
+        <div class="footer-note">
+            <div class="footer-author">إعداد المرشد الأكاديمي والمهني عبدالنبي منصور محمد آل سعيد</div>
+            <div class="footer-wishes">مع تمنيات أعضاء مكتب الإرشاد الأكاديمي والمهني لك بالتوفيق والنجاح</div>
+        </div>
+    </div>
+</div>
+
+<!-- Return & Reset Current Semester Grades Confirmation Modal -->
+<div id="confirmReturnModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-icon">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="modal-title">تأكيد الرجوع وتصفير الدرجات المدخلة</div>
+        <div class="modal-desc" id="confirmReturnText">
+            عند الرجوع سيتم تصفير الدرجات التي أدخلتها في هذا الفصل. هل توافق على المتابعة؟
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-danger" id="confirmReturnYesBtn">
+                <i class="fa-solid fa-check"></i> موافق، تصفير الدرجات
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="closeConfirmReturnModal()">
+                <i class="fa-solid fa-xmark"></i> إلغاء
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const TOTAL_PLAN_CREDITS = 156;
+
+    const rawCoursesData = {
+        level1_A: {
+            sem1: [
+                { code: "دين101", name: "دراسات في العقيدة", credits: 2 },
+                { code: "عرب101", name: "ملامح من صور الذات", credits: 4 },
+                { code: "إنج101", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "ريض151", name: "الرياضيات1", credits: 4 },
+                { code: "بدن101", name: "الإعداد البدني", credits: 2 },
+                { code: "فيز102", name: "الفيزياء1", credits: 2 },
+                { code: "حيا102", name: "الأحياء1", credits: 2 },
+                { code: "تقن107", name: "البرمجة بلغة بايثون", credits: 2 },
+                { code: "قصد101", name: "التربية الإقتصادية", credits: 4 }
+            ],
+            sem2: [
+                { code: "دين302", name: "التربية الإسلامية5", credits: 2 },
+                { code: "عرب102", name: "من فنون الأدب", credits: 4 },
+                { code: "إنج102", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "ريض152", name: "الرياضيات2", credits: 4 },
+                { code: "بدن201", name: "الإعداد البدني", credits: 2 },
+                { code: "أسر102", name: "مهارات الحياة", credits: 2 },
+                { code: "كيم102", name: "الكيمياء1", credits: 2 },
+                { code: "وطن101", name: "التربية للمواطنة", credits: 2 },
+                { code: "أجا102", name: "الجغرافيا الإقتصادية", credits: 2 },
+                { code: "تقن108", name: "البرمجة بلغة بايثون", credits: 2 }
+            ]
+        },
+        level1_B: {
+            sem1: [
+                { code: "دين101", name: "دراسات في العقيدة", credits: 2 },
+                { code: "عرب101", name: "ملامح من صور الذات", credits: 4 },
+                { code: "إنج101", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "ريض151", name: "الرياضيات1", credits: 4 },
+                { code: "بدن101", name: "الإعداد البدني", credits: 2 },
+                { code: "أسر102", name: "مهارات الحياة", credits: 2 },
+                { code: "كيم102", name: "الكيمياء1", credits: 2 },
+                { code: "وطن101", name: "التربية للمواطنة", credits: 2 },
+                { code: "أجا102", name: "الجغرافيا الإقتصادية", credits: 2 },
+                { code: "تقن107", name: "البرمجة بلغة البايثون", credits: 2 }
+            ],
+            sem2: [
+                { code: "دين302", name: "التربية الإسلامية5", credits: 2 },
+                { code: "عرب102", name: "من فنون الأدب", credits: 4 },
+                { code: "إنج102", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "ريض152", name: "الرياضيات2", credits: 4 },
+                { code: "بدن201", name: "الإعداد البدني", credits: 2 },
+                { code: "فيز102", name: "الفيزياء1", credits: 2 },
+                { code: "حيا102", name: "الأحياء1", credits: 2 },
+                { code: "تقن108", name: "البرمجة بلغة بايثون", credits: 2 },
+                { code: "قصد101", name: "التربية الإقتصادية", credits: 4 }
+            ]
+        },
+        chem_bio: {
+            sem3: [
+                { code: "دين201", name: "أحكام الأسرة في الإسلام", credits: 2 },
+                { code: "عرب201", name: "اللغة العربية في النص الحجاجي", credits: 4 },
+                { code: "إنج201", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "ريض253", name: "الرياضيات3", credits: 2 },
+                { code: "بدن301", name: "ألعاب القوة", credits: 2 },
+                { code: "حيا211", name: "الأحياء2", credits: 4 },
+                { code: "كيم211", name: "الكيمياء2", credits: 4 },
+                { code: "فيز210", name: "الفيزياء2", credits: 2 },
+                { code: "ريض261", name: "الرياضيات3", credits: 2 }
+            ],
+            sem4: [
+                { code: "دين204", name: "التربية الإسلامية4", credits: 2 },
+                { code: "عرب202", name: "اللغة العربية (الأدب والحياة)", credits: 4 },
+                { code: "إنج202", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "اجا203", name: "تاريخ البحرين الحديث والمعاصر", credits: 2 },
+                { code: "وطن201", name: "التربية للمواطنة وحقوق الإنسان 2", credits: 2 },
+                { code: "حيا217", name: "الأحياء3", credits: 2 },
+                { code: "كيم214", name: "الكيمياء3", credits: 4 },
+                { code: "جيو211", name: "جيولوجيا1", credits: 2 },
+                { code: "فيز218", name: "الفيزياء3", credits: 2 },
+                { code: "ريض262", name: "الرياضيات4", credits: 2 }
+            ],
+            sem5: [
+                { code: "دين301", name: "السلوك الاجتماعي في الإسلام", credits: 2 },
+                { code: "عرب301", name: "الأدب البحريني", credits: 2 },
+                { code: "إنج301", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "اجا103", name: "تاريخ العالم الحديث والمعاصر", credits: 2 },
+                { code: "حيا316", name: "الأحياء4", credits: 4 },
+                { code: "كيم315", name: "الكيمياء4", credits: 4 },
+                { code: "ريض364", name: "الرياضيات5", credits: 4 },
+                { code: "فيز311", name: "الفيزياء4", credits: 2 },
+                { code: "وطن301", name: "التربية للمواطنة وحقوق الإنسان3", credits: 2 }
+            ],
+            sem6: [
+                { code: "علم202", name: "التربية البيئية والتنمية المستدامة", credits: 4 },
+                { code: "عرب302", name: "النص على النص", credits: 4 },
+                { code: "إنج302", name: "اللغة الإنجليزية", credits: 2 },
+                { code: "حيا317", name: "الأحياء5", credits: 4 },
+                { code: "كيم318", name: "الكيمياء5", credits: 2 },
+                { code: "ريض366", name: "الرياضيات6", credits: 4 },
+                { code: "اختياري", name: "مساق اختياري", credits: 2 },
+                { code: "ريض352", name: "الرياضيات7", credits: 2 },
+                { code: "تقن221", name: "بايثون للرياضيات", credits: 2 }
+            ]
+        },
+        phys_math: {
+            sem3: [
+                { code: "دين201", name: "أحكام الأسرة في الإسلام", credits: 2 },
+                { code: "عرب201", name: "اللغة العربية في النص الحجاجي", credits: 4 },
+                { code: "إنج201", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "ريض253", name: "الرياضيات3", credits: 2 },
+                { code: "بدن301", name: "ألعاب القوة", credits: 2 },
+                { code: "حيا215", name: "الأحياء2", credits: 2 },
+                { code: "كيم211", name: "الكيمياء2", credits: 4 },
+                { code: "فيز217", name: "الفيزياء2", credits: 4 },
+                { code: "ريض261", name: "الرياضيات3", credits: 2 }
+            ],
+            sem4: [
+                { code: "دين204", name: "التربية الإسلامية4", credits: 2 },
+                { code: "عرب202", name: "اللغة العربية (الأدب والحياة)", credits: 4 },
+                { code: "إنج202", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "اجا203", name: "تاريخ البحرين الحديث والمعاصر", credits: 2 },
+                { code: "حيا217", name: "الأحياء3", credits: 2 },
+                { code: "كيم216", name: "الكيمياء3", credits: 2 },
+                { code: "فيز219", name: "الفيزياء3", credits: 4 },
+                { code: "ريض262", name: "الرياضيات4", credits: 2 },
+                { code: "ريض263", name: "الرياضيات4", credits: 4 }
+            ],
+            sem5: [
+                { code: "دين301", name: "السلوك الاجتماعي في الإسلام", credits: 2 },
+                { code: "عرب301", name: "الأدب البحريني", credits: 2 },
+                { code: "إنج301", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "اجا103", name: "تاريخ العالم الحديث والمعاصر", credits: 2 },
+                { code: "كيم317", name: "الكيمياء4", credits: 2 },
+                { code: "ريض364", name: "الرياضيات5", credits: 4 },
+                { code: "ريض365", name: "الرياضيات5", credits: 2 },
+                { code: "فيز312", name: "الفيزياء4", credits: 4 },
+                { code: "وطن201", name: "التربية للمواطنة وحقوق الإنسان2", credits: 2 },
+                { code: "مقرر اختياري", name: "مقرر اختياري", credits: 2 }
+            ],
+            sem6: [
+                { code: "علم202", name: "التربية البيئية والتنمية المستدامة", credits: 4 },
+                { code: "عرب302", name: "النص على النص", credits: 4 },
+                { code: "إنج302", name: "اللغة الإنجليزية", credits: 2 },
+                { code: "فيز313", name: "الفيزياء5", credits: 2 },
+                { code: "فيز324", name: "الفيزياء6", credits: 2 },
+                { code: "حيا318", name: "الأحياء4", credits: 2 },
+                { code: "ريض366", name: "الرياضيات6", credits: 4 },
+                { code: "وطن301", name: "التربية للمواطنة وحقوق الانسان3", credits: 2 },
+                { code: "ريض352", name: "الرياضيات7", credits: 2 },
+                { code: "تقن221", name: "بايثون للرياضيات", credits: 2 }
+            ]
+        },
+        commercial: {
+            sem3: [
+                { code: "دين201", name: "أحكام الأسرة في الإسلام", credits: 2 },
+                { code: "عرب201", name: "اللغة العربية في النص الحجاجي", credits: 4 },
+                { code: "إنج201", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "ريض253", name: "الرياضيات3", credits: 2 },
+                { code: "بدن301", name: "ألعاب القوة", credits: 2 },
+                { code: "ادر111", name: "إدارة مكتبية", credits: 2 },
+                { code: "قصد211", name: "مبادئ الاقتصاد", credits: 2 },
+                { code: "مال111", name: "الرياضة المالية", credits: 4 },
+                { code: "تام211", name: "التأمين", credits: 2 },
+                { code: "تقن221", name: "بايثون للرياضيات", credits: 2 }
+            ],
+            sem4: [
+                { code: "دين204", name: "التربية الإسلامية4", credits: 2 },
+                { code: "عرب202", name: "اللغة العربية (الأدب والحياة)", credits: 4 },
+                { code: "إنج202", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "اجا203", name: "تاريخ البحرين الحديث والمعاصر", credits: 2 },
+                { code: "سفر334", name: "السفر والسياحة", credits: 2 },
+                { code: "قان322", name: "قانون العمل", credits: 2 },
+                { code: "محا111", name: "مبادئ المحاسبة", credits: 4 },
+                { code: "قصد312", name: "الاقتصاد", credits: 2 },
+                { code: "ريض261", name: "الرياضيات3", credits: 2 },
+                { code: "وطن201", name: "التربية للمواطنة وحقوق الإنسان2", credits: 2 }
+            ],
+            sem5: [
+                { code: "دين301", name: "السلوك الاجتماعي في الإسلام", credits: 2 },
+                { code: "عرب301", name: "الأدب البحريني", credits: 2 },
+                { code: "إنج301", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "اجا103", name: "تاريخ العالم الحديث والمعاصر", credits: 2 },
+                { code: "محا212", name: "المحاسبة المالية2", credits: 4 },
+                { code: "ريض362", name: "الرياضيات4", credits: 2 },
+                { code: "ادر215", name: "المشروعات الصغيرة وريادة الأعمال", credits: 2 },
+                { code: "قصد312", name: "الاقتصاد2", credits: 2 },
+                { code: "بنك211", name: "مقدمة في البنوك والعمليات المصرفية", credits: 4 },
+                { code: "وطن301", name: "التربية للمواطنة وحقوق الإنسان3", credits: 2 }
+            ],
+            sem6: [
+                { code: "علم202", name: "التربية البيئية والتنمية المستدامة", credits: 4 },
+                { code: "عرب302", name: "النص على النص", credits: 4 },
+                { code: "إنج302", name: "اللغة الإنجليزية", credits: 2 },
+                { code: "محا213", name: "المحاسبة المالية3", credits: 2 },
+                { code: "مال316", name: "الرياضة المالية2", credits: 4 },
+                { code: "ريض363", name: "الرياضيات5", credits: 4 },
+                { code: "إنج225", name: "اللغة الإنجليزية إدارة الأعمال", credits: 4 },
+                { code: "ريض352", name: "الرياضيات7", credits: 2 }
+            ]
+        },
+        literary: {
+            sem3: [
+                { code: "دين201", name: "أحكام الأسرة في الإسلام", credits: 2 },
+                { code: "عرب201", name: "اللغة العربية في النص الحجاجي", credits: 4 },
+                { code: "إنج201", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "ريض253", name: "الرياضيات3", credits: 2 },
+                { code: "بدن301", name: "ألعاب القوة", credits: 2 },
+                { code: "عرب213", name: "اللغة العربية الشعر العربي القديم", credits: 2 },
+                { code: "إنج217", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "أجا210", name: "جغرافيا الوطن العربي", credits: 2 },
+                { code: "تقن221", name: "بايثون للرياضيات", credits: 2 },
+                { code: "مقرر اختياري", name: "مقرر اختياري", credits: 2 }
+            ],
+            sem4: [
+                { code: "دين204", name: "التربية الإسلامية4", credits: 2 },
+                { code: "عرب202", name: "اللغة العربية (الأدب والحياة)", credits: 4 },
+                { code: "إنج202", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "اجا203", name: "تاريخ البحرين الحديث والمعاصر", credits: 2 },
+                { code: "عرب214", name: "اللغة العربية الأدب في العصر العباسي والأندلسي", credits: 2 },
+                { code: "أجا211", name: "الجغرافيا الطبيعية", credits: 4 },
+                { code: "دين216", name: "التربية الإسلامية7", credits: 2 },
+                { code: "أنس211", name: "مبادئ علم الإجتماع", credits: 2 },
+                { code: "وطن201", name: "التربية للمواطنة وحقوق الإنسان2", credits: 2 },
+                { code: "اختياري", name: "مساق اختياري", credits: 2 }
+            ],
+            sem5: [
+                { code: "دين301", name: "السلوك الاجتماعي في الإسلام", credits: 2 },
+                { code: "عرب301", name: "الأدب البحريني", credits: 2 },
+                { code: "إنج301", name: "اللغة الإنجليزية", credits: 4 },
+                { code: "اجا103", name: "تاريخ العالم الحديث والمعاصر", credits: 2 },
+                { code: "عرب221", name: "اللغة العربية10 الأدب الحديث التيار الإحيائي والرومانسي", credits: 4 },
+                { code: "إنج218", name: "الكتابة الوظيفية", credits: 4 },
+                { code: "أجا312", name: "الجغرافيا السكانية", credits: 2 },
+                { code: "أجا221", name: "جغرافيا دول الخليج العربية", credits: 2 },
+                { code: "أنس311", name: "علم النفس العام", credits: 2 },
+                { code: "وطن301", name: "التربية للمواطنة وحقوق الإنسان3", credits: 2 }
+            ],
+            sem6: [
+                { code: "علم202", name: "التربية البيئية والتنمية المستدامة", credits: 4 },
+                { code: "عرب302", name: "النص على النص", credits: 4 },
+                { code: "إنج302", name: "اللغة الإنجليزية", credits: 2 },
+                { code: "عرب222", name: "اللغة العربية11 الأدب العربي الحديث المدرسة الواقعية", credits: 4 },
+                { code: "دين326", name: "التربية الإسلامية9", credits: 2 },
+                { code: "أجا213", name: "تاريخ العرب الحديث والمعاصر", credits: 4 },
+                { code: "أنس213", name: "مشكلات فلسفية", credits: 2 },
+                { code: "عرب311", name: "اللغة العربية9 من الأدب العالمي", credits: 2 },
+                { code: "ريض352", name: "الرياضيات7", credits: 2 }
+            ]
+        }
+    };
+
+    function normalizeArabicCode(str) {
+        return str.replace(/[أإآ]/g, 'ا').trim();
+    }
+
+    function sortCoursesByCode(list) {
+        return [...list].sort((a, b) => normalizeArabicCode(a.code).localeCompare(normalizeArabicCode(b.code), 'ar'));
+    }
+
+    const coursesData = {};
+    for (const groupKey in rawCoursesData) {
+        coursesData[groupKey] = {};
+        for (const semKey in rawCoursesData[groupKey]) {
+            coursesData[groupKey][semKey] = sortCoursesByCode(rawCoursesData[groupKey][semKey]);
+        }
+    }
+
+    const semOrder = ["sem1", "sem2", "sem3", "sem4", "sem5", "sem6"];
+    const semLabels = {
+        sem1: "الفصل الأول (توحيد المسارات)",
+        sem2: "الفصل الثاني (توحيد المسارات)",
+        sem3: "الفصل الثالث",
+        sem4: "الفصل الرابع",
+        sem5: "الفصل الخامس",
+        sem6: "الفصل السادس"
+    };
+    const trackLabels = {
+        chem_bio: "علمي (كيمياء - أحياء)",
+        phys_math: "علمي (فيزياء - رياضيات)",
+        commercial: "المسار التجاري",
+        literary: "المسار الأدبي"
+    };
+
+    let state = {
+        name: "",
+        group: "A",
+        track: "chem_bio",
+        trackSelected: false,
+        currentSem: "sem1",
+        visitedSems: new Set(["sem1"]),
+        grades: { sem1: {}, sem2: {}, sem3: {}, sem4: {}, sem5: {}, sem6: {} },
+        improvements: [],
+        extraCourses: []
+    };
+
+    let pendingReturnAction = null;
+
+    function showSection(sectionId) {
+        document.querySelectorAll('.step-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+    }
+
+    function startUnifiedSemesters() {
+        const nameInput = document.getElementById('studentName').value.trim();
+        if (!nameInput) {
+            alert("الرجاء إدخال اسم الطالب الكامل للمتابعة.");
+            return;
+        }
+        state.name = nameInput;
+        state.group = document.getElementById('studentGroup').value;
+        state.currentSem = "sem1";
+        state.visitedSems.add("sem1");
+
+        document.getElementById('liveDashboard').style.display = "grid";
+        showSection('step2');
+        renderSemesterView();
+    }
+
+    function proceedToSpecializedSemesters() {
+        state.track = document.getElementById('studentTrack').value;
+        state.trackSelected = true;
+        state.currentSem = "sem3";
+        state.visitedSems.add("sem3");
+        showSection('step2');
+        renderSemesterView();
+    }
+
+    function validateSemesterComplete(semKey) {
+        const courses = getEffectiveSemesterCourses(semKey);
+        const missing = [];
+
+        courses.forEach(c => {
+            if (c.isMovedOut) return;
+            const val = state.grades[semKey][c.code];
+            const inpEl = document.getElementById(`inp_${semKey}_${c.code}`);
+            if (val === undefined || val === null || val === "" || isNaN(val)) {
+                missing.push(c);
+                if (inpEl) inpEl.classList.add('input-missing');
+            } else if (inpEl) {
+                inpEl.classList.remove('input-missing');
+            }
+        });
+
+        const banner = document.getElementById('validationBanner');
+        if (missing.length > 0) {
+            const namesList = missing.map(c => `${c.name} (${c.code})`).join("، ");
+            if (banner) {
+                banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> لا يمكن الانتقال قبل إكمال إدخال درجات جميع مقررات الفصل الحالي. المقررات المتبقية (${missing.length}): ${namesList}`;
+                banner.style.display = "block";
+            }
+            const firstInp = document.getElementById(`inp_${semKey}_${missing[0].code}`);
+            if (firstInp) {
+                firstInp.focus();
+                firstInp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return false;
+        }
+
+        if (banner) banner.style.display = "none";
+        return true;
+    }
+
+    // Check if the current semester has any entered grades before returning
+    function currentSemesterHasGrades() {
+        return Object.keys(state.grades[state.currentSem] || {}).length > 0;
+    }
+
+    // Ask confirmation only if the student has entered grades in the current semester;
+    // upon confirmation, clear the current semester's entered grades and return to the target previous semester
+    function requestReturnConfirmation(targetSemKey, goToStep1 = false) {
+        const currentSemKey = state.currentSem;
+
+        if (!currentSemesterHasGrades()) {
+            executeReturnAction(targetSemKey, goToStep1, false);
+            return;
+        }
+
+        const currentLabel = semLabels[currentSemKey];
+        const targetLabel = goToStep1 ? "بيانات الطالب الأساسية" : semLabels[targetSemKey];
+
+        document.getElementById('confirmReturnText').innerHTML =
+            `لقد قمت بإدخال درجات في <strong>${currentLabel}</strong>. عند الرجوع إلى <strong>${targetLabel}</strong> سيتم <strong>تصفير الدرجات المدخلة</strong> في ${currentLabel}.<br>هل توافق على الرجوع وتصفير الدرجات؟`;
+
+        pendingReturnAction = () => executeReturnAction(targetSemKey, goToStep1, true);
+        document.getElementById('confirmReturnModal').classList.add('open');
+    }
+
+    function executeReturnAction(targetSemKey, goToStep1, shouldClearCurrent) {
+        if (shouldClearCurrent) {
+            state.grades[state.currentSem] = {};
+        }
+
+        if (goToStep1) {
+            document.getElementById('liveDashboard').style.display = "none";
+            updateDashboard();
+            showSection('step1');
+            return;
+        }
+
+        state.currentSem = targetSemKey;
+        state.visitedSems.add(targetSemKey);
+        showSection('step2');
+        renderSemesterView();
+    }
+
+    function closeConfirmReturnModal() {
+        pendingReturnAction = null;
+        document.getElementById('confirmReturnModal').classList.remove('open');
+    }
+
+    document.getElementById('confirmReturnYesBtn').addEventListener('click', function () {
+        const action = pendingReturnAction;
+        closeConfirmReturnModal();
+        if (typeof action === 'function') {
+            action();
+        }
+    });
+
+    function navigateToSemester(semKey) {
+        const currentIdx = semOrder.indexOf(state.currentSem);
+        const targetIdx = semOrder.indexOf(semKey);
+
+        if (targetIdx > currentIdx) {
+            if (!validateSemesterComplete(state.currentSem)) return;
+            state.currentSem = semKey;
+            state.visitedSems.add(semKey);
+            showSection('step2');
+            renderSemesterView();
+        } else if (targetIdx < currentIdx) {
+            requestReturnConfirmation(semKey, false);
+        }
+    }
+
+    function handleNextStep() {
+        if (!validateSemesterComplete(state.currentSem)) return;
+
+        const idx = semOrder.indexOf(state.currentSem);
+        if (state.currentSem === "sem1") {
+            navigateToSemester("sem2");
+        } else if (state.currentSem === "sem2") {
+            showSection('stepTrackSelection');
+        } else if (idx < semOrder.length - 1) {
+            navigateToSemester(semOrder[idx + 1]);
+        } else {
+            showFinalReport();
+        }
+    }
+
+    function handlePrevStep() {
+        const idx = semOrder.indexOf(state.currentSem);
+        if (state.currentSem === "sem1") {
+            requestReturnConfirmation("sem1", true);
+        } else if (state.currentSem === "sem3") {
+            showSection('stepTrackSelection');
+        } else {
+            requestReturnConfirmation(semOrder[idx - 1], false);
+        }
+    }
+
+    function returnFromReportToSemesters() {
+        showSection('step2');
+        renderSemesterView();
+    }
+
+    function getBaseCourses(semKey) {
+        if (semKey === "sem1" || semKey === "sem2") {
+            return state.group === "A" ? coursesData.level1_A[semKey] : coursesData.level1_B[semKey];
+        }
+        return coursesData[state.track][semKey] || [];
+    }
+
+    function getEffectiveSemesterCourses(semKey) {
+        const base = getBaseCourses(semKey).map(c => {
+            const movedRecord = state.improvements.find(imp => imp.fromSem === semKey && imp.code === c.code);
+            return {
+                ...c,
+                isMovedOut: Boolean(movedRecord),
+                movedToSem: movedRecord ? movedRecord.toSem : null,
+                isImprovementHere: false,
+                isExtraHere: false,
+                fromSem: null
+            };
+        });
+
+        const addedImprovements = state.improvements
+            .filter(imp => imp.toSem === semKey)
+            .map(imp => ({
+                code: imp.code,
+                name: imp.name,
+                credits: imp.credits,
+                isMovedOut: false,
+                movedToSem: null,
+                isImprovementHere: true,
+                isExtraHere: false,
+                fromSem: imp.fromSem
+            }));
+
+        const addedExtras = state.extraCourses
+            .filter(ext => ext.toSem === semKey)
+            .map(ext => ({
+                code: ext.code,
+                name: ext.name,
+                credits: ext.credits,
+                isMovedOut: false,
+                movedToSem: null,
+                isImprovementHere: false,
+                isExtraHere: true,
+                fromSem: null
+            }));
+
+        return sortCoursesByCode([...base, ...addedImprovements, ...addedExtras]);
+    }
+
+    function renderSemNavPills() {
+        const container = document.getElementById('semNavPills');
+        container.innerHTML = "";
+        semOrder.forEach((sKey, idx) => {
+            const btn = document.createElement('button');
+            btn.type = "button";
+            btn.className = "sem-pill" + (state.currentSem === sKey ? " active" : "");
+            btn.textContent = `الفصل ${idx + 1}`;
+            const canAccess = state.visitedSems.has(sKey) && (idx < 2 || state.trackSelected);
+            btn.disabled = !canAccess;
+            btn.onclick = () => {
+                if (sKey !== state.currentSem) {
+                    navigateToSemester(sKey);
+                }
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    function renderSemesterView() {
+        const semKey = state.currentSem;
+        renderSemNavPills();
+
+        const banner = document.getElementById('validationBanner');
+        if (banner) banner.style.display = "none";
+
+        document.getElementById('currentSemHeading').textContent = semLabels[semKey];
+        document.getElementById('trackBadge').textContent =
+            (semKey === "sem1" || semKey === "sem2")
+                ? `توحيد المسارات (${state.group === "A" ? "مجموعة أ" : "مجموعة ب"})`
+                : trackLabels[state.track];
+
+        const impWrapper = document.getElementById('improvementSectionWrapper');
+        document.getElementById('improveBox').classList.remove('open');
+        document.getElementById('extraCourseBox').classList.remove('open');
+
+        if (semKey !== "sem1") {
+            impWrapper.style.display = "block";
+        } else {
+            impWrapper.style.display = "none";
+        }
+
+        const nextBtn = document.getElementById('nextStepBtn');
+        if (semKey === "sem2") {
+            nextBtn.innerHTML = `حفظ واختيار المسار التخصصي <i class="fa-solid fa-arrow-left"></i>`;
+        } else if (semKey === "sem6") {
+            nextBtn.innerHTML = `عرض التقرير النهائي للمعدل <i class="fa-solid fa-square-poll-vertical"></i>`;
+        } else {
+            nextBtn.innerHTML = `حفظ والانتقال للفصل التالي <i class="fa-solid fa-arrow-left"></i>`;
+        }
+
+        const tbody = document.getElementById('coursesTableBody');
+        tbody.innerHTML = "";
+        const courses = getEffectiveSemesterCourses(semKey);
+
+        courses.forEach(course => {
+            const tr = document.createElement('tr');
+            if (course.isMovedOut) tr.className = "row-moved";
+            if (course.isImprovementHere) tr.className = "row-improved";
+
+            const savedVal = state.grades[semKey][course.code] !== undefined ? state.grades[semKey][course.code] : "";
+            const inputId = `inp_${semKey}_${course.code}`;
+            const errId = `err_${semKey}_${course.code}`;
+            const badgeId = `bdg_${semKey}_${course.code}`;
+
+            let nameHtml = course.name;
+            if (course.isImprovementHere) {
+                nameHtml += ` <span class="badge badge-imp-tag">تحسين من ${semLabels[course.fromSem].split(' ')[1]}</span>`;
+                nameHtml += `<br><button type="button" class="small-action-btn" onclick="cancelImprovement('${course.code}', '${course.fromSem}', '${semKey}')"><i class="fa-solid fa-rotate-left"></i> إلغاء التحسين وإرجاع المقرر</button>`;
+            } else if (course.isExtraHere) {
+                nameHtml += ` <span class="badge badge-extra-tag">مقرر إضافي</span>`;
+                nameHtml += `<br><button type="button" class="small-action-btn" onclick="removeExtraCourse('${course.code}', '${semKey}')"><i class="fa-solid fa-trash"></i> حذف المقرر الإضافي</button>`;
+            }
+
+            let gradeCellHtml = "";
+            let statusCellHtml = "";
+
+            if (course.isMovedOut) {
+                gradeCellHtml = `<span style="color: var(--warning); font-weight: 700; font-size: 0.8rem;">نُقل للتحسين</span>`;
+                statusCellHtml = `<span class="badge badge-moved">نُقل إلى ${semLabels[course.movedToSem]} (غير محتسب)</span>`;
+            } else {
+                gradeCellHtml = `
+                    <input type="number" id="${inputId}" class="grade-input" inputmode="decimal" min="0" max="100" step="0.5"
+                           value="${savedVal}" placeholder="0-100"
+                           onkeydown="blockNegativeKey(event)"
+                           oninput="handleGradeInput('${semKey}', '${course.code}', this)">
+                    <div id="${errId}" class="error-msg">يجب أن لا تتجاوز العلامة 100</div>
+                `;
+                statusCellHtml = getRatingBadgeHtml(savedVal);
+            }
+
+            tr.innerHTML = `
+                <td><strong>${course.code}</strong></td>
+                <td>${nameHtml}</td>
+                <td>${course.credits}</td>
+                <td>${gradeCellHtml}</td>
+                <td id="${badgeId}">${statusCellHtml}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        updateDashboard();
+    }
+
+    function blockNegativeKey(e) {
+        if (e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+') {
+            e.preventDefault();
+        }
+    }
+
+    function handleGradeInput(semKey, code, inputEl) {
+        const errEl = document.getElementById(`err_${semKey}_${code}`);
+        const badgeEl = document.getElementById(`bdg_${semKey}_${code}`);
+        inputEl.classList.remove('input-missing');
+        let raw = inputEl.value;
+
+        if (raw.includes('-')) {
+            raw = raw.replace(/-/g, '');
+            inputEl.value = raw;
+        }
+
+        if (raw === "") {
+            errEl.style.display = "none";
+            delete state.grades[semKey][code];
+            badgeEl.innerHTML = getRatingBadgeHtml("");
+            updateDashboard();
+            return;
+        }
+
+        let num = parseFloat(raw);
+        if (isNaN(num) || num < 0) {
+            num = 0;
+            inputEl.value = "0";
+            errEl.style.display = "none";
+        } else if (num > 100) {
+            errEl.style.display = "block";
+            num = 100;
+            inputEl.value = "100";
+        } else {
+            errEl.style.display = "none";
+        }
+
+        state.grades[semKey][code] = num;
+        badgeEl.innerHTML = getRatingBadgeHtml(num);
+        updateDashboard();
+    }
+
+    function getRatingInfo(score) {
+        if (score === "" || score === null || score === undefined || isNaN(score)) {
+            return { text: "لم ترصد", css: "badge-empty", short: "-" };
+        }
+        const n = parseFloat(score);
+        if (n >= 90) return { text: "مجتاز (ممتاز)", css: "badge-excellent", short: "ممتاز" };
+        if (n >= 80) return { text: "مجتاز (جيد جداً)", css: "badge-vgood", short: "جيد جداً" };
+        if (n >= 70) return { text: "مجتاز (جيد)", css: "badge-good", short: "جيد" };
+        if (n >= 60) return { text: "مجتاز (متوسط)", css: "badge-avg", short: "متوسط" };
+        if (n >= 50) return { text: "مجتاز (مقبول)", css: "badge-pass", short: "مقبول" };
+        return { text: "غير مجتاز / راسب", css: "badge-fail", short: "غير مجتاز" };
+    }
+
+    function getRatingBadgeHtml(score) {
+        const info = getRatingInfo(score);
+        return `<span class="badge ${info.css}">${info.text}</span>`;
+    }
+
+    function toggleImprovementBox() {
+        const box = document.getElementById('improveBox');
+        document.getElementById('extraCourseBox').classList.remove('open');
+        if (box.classList.contains('open')) {
+            box.classList.remove('open');
+            return;
+        }
+
+        const currentIdx = semOrder.indexOf(state.currentSem);
+        const selectEl = document.getElementById('improveCourseSelect');
+        selectEl.innerHTML = "";
+
+        let eligible = [];
+        for (let i = 0; i < currentIdx; i++) {
+            const prevSem = semOrder[i];
+            if (i >= 2 && !state.trackSelected) continue;
+            const prevCourses = getBaseCourses(prevSem);
+            prevCourses.forEach(c => {
+                const alreadyMoved = state.improvements.some(imp => imp.fromSem === prevSem && imp.code === c.code);
+                if (!alreadyMoved) {
+                    const prevGrade = state.grades[prevSem][c.code];
+                    const gradeLabel = prevGrade !== undefined ? ` - الدرجة الحالية: ${prevGrade}` : "";
+                    eligible.push({
+                        fromSem: prevSem,
+                        code: c.code,
+                        name: c.name,
+                        credits: c.credits,
+                        label: `${c.code} - ${c.name} (${semLabels[prevSem]})${gradeLabel}`
+                    });
+                }
+            });
+        }
+
+        eligible.sort((a, b) => normalizeArabicCode(a.code).localeCompare(normalizeArabicCode(b.code), 'ar'));
+
+        if (eligible.length === 0) {
+            alert("لا توجد مقررات متاحة للتحسين من الفصول السابقة.");
+            return;
+        }
+
+        eligible.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = JSON.stringify({ fromSem: item.fromSem, code: item.code, name: item.name, credits: item.credits });
+            opt.textContent = item.label;
+            selectEl.appendChild(opt);
+        });
+
+        box.classList.add('open');
+    }
+
+    function confirmAddImprovement() {
+        const selectEl = document.getElementById('improveCourseSelect');
+        if (!selectEl.value) return;
+        const chosen = JSON.parse(selectEl.value);
+
+        const oldGrade = state.grades[chosen.fromSem][chosen.code];
+        delete state.grades[chosen.fromSem][chosen.code];
+
+        state.improvements.push({
+            fromSem: chosen.fromSem,
+            toSem: state.currentSem,
+            code: chosen.code,
+            name: chosen.name,
+            credits: chosen.credits,
+            oldGrade: oldGrade
+        });
+
+        document.getElementById('improveBox').classList.remove('open');
+        renderSemesterView();
+    }
+
+    function cancelImprovement(code, fromSem, toSem) {
+        const idx = state.improvements.findIndex(imp => imp.code === code && imp.fromSem === fromSem && imp.toSem === toSem);
+        if (idx !== -1) {
+            const removed = state.improvements.splice(idx, 1)[0];
+            delete state.grades[toSem][code];
+            if (removed.oldGrade !== undefined) {
+                state.grades[fromSem][code] = removed.oldGrade;
+            }
+        }
+        renderSemesterView();
+    }
+
+    function toggleExtraCourseBox() {
+        const box = document.getElementById('extraCourseBox');
+        document.getElementById('improveBox').classList.remove('open');
+        if (box.classList.contains('open')) {
+            box.classList.remove('open');
+            return;
+        }
+        document.getElementById('extraCoursePreset').value = "";
+        document.getElementById('extraCodeInput').value = "";
+        document.getElementById('extraNameInput').value = "";
+        document.getElementById('extraCreditsInput').value = "2";
+        box.classList.add('open');
+    }
+
+    function fillExtraCoursePreset() {
+        const val = document.getElementById('extraCoursePreset').value;
+        if (!val) return;
+        const [code, name, credits] = val.split('|');
+        document.getElementById('extraCodeInput').value = code;
+        document.getElementById('extraNameInput').value = name;
+        document.getElementById('extraCreditsInput').value = credits;
+    }
+
+    function confirmAddExtraCourse() {
+        const code = document.getElementById('extraCodeInput').value.trim();
+        const name = document.getElementById('extraNameInput').value.trim();
+        const credits = parseInt(document.getElementById('extraCreditsInput').value, 10) || 2;
+
+        if (!code || !name) {
+            alert("يرجى إدخال رمز المقرر واسمه أو اختياره من القائمة.");
+            return;
+        }
+
+        const exists = getEffectiveSemesterCourses(state.currentSem).some(c => c.code === code && !c.isMovedOut);
+        if (exists) {
+            alert("هذا المقرر موجود بالفعل في الفصل الدراسي الحالي.");
+            return;
+        }
+
+        state.extraCourses.push({
+            toSem: state.currentSem,
+            code,
+            name,
+            credits
+        });
+
+        document.getElementById('extraCourseBox').classList.remove('open');
+        renderSemesterView();
+    }
+
+    function removeExtraCourse(code, semKey) {
+        state.extraCourses = state.extraCourses.filter(ext => !(ext.toSem === semKey && ext.code === code));
+        delete state.grades[semKey][code];
+        renderSemesterView();
+    }
+
+    function computeSemesterMetrics(semKey) {
+        const courses = getEffectiveSemesterCourses(semKey);
+        let weightedSum = 0;
+        let activeCredits = 0;
+        let passedCredits = 0;
+        let failedCredits = 0;
+
+        courses.forEach(c => {
+            if (c.isMovedOut) return;
+            const g = state.grades[semKey][c.code];
+            if (g !== undefined && !isNaN(g)) {
+                activeCredits += c.credits;
+                weightedSum += g * c.credits;
+                if (g >= 50) {
+                    passedCredits += c.credits;
+                } else {
+                    failedCredits += c.credits;
+                }
+            }
+        });
+
+        const pct = activeCredits > 0 ? (weightedSum / activeCredits) : 0;
+        return {
+            pct,
+            pctFormatted: pct.toFixed(1),
+            activeCredits,
+            passedCredits,
+            failedCredits,
+            weightedSum,
+            rating: activeCredits > 0 ? getRatingInfo(pct).short : "-"
+        };
+    }
+
+    function computeCumulativeMetrics() {
+        let totalWeighted = 0;
+        let totalActiveCredits = 0;
+        let totalPassedCredits = 0;
+        let totalFailedCredits = 0;
+
+        semOrder.forEach(sKey => {
+            const m = computeSemesterMetrics(sKey);
+            totalWeighted += m.weightedSum;
+            totalActiveCredits += m.activeCredits;
+            totalPassedCredits += m.passedCredits;
+            totalFailedCredits += m.failedCredits;
+        });
+
+        const cumPct = totalActiveCredits > 0 ? (totalWeighted / totalActiveCredits) : 0;
+        const remainingCredits = Math.max(0, TOTAL_PLAN_CREDITS - totalPassedCredits);
+
+        return {
+            cumPct,
+            cumPctFormatted: cumPct.toFixed(1),
+            totalActiveCredits,
+            totalPassedCredits,
+            totalFailedCredits,
+            remainingCredits,
+            rating: totalActiveCredits > 0 ? getRatingInfo(cumPct).short : "-"
+        };
+    }
+
+    function updateDashboard() {
+        const semM = computeSemesterMetrics(state.currentSem);
+        const cumM = computeCumulativeMetrics();
+
+        document.getElementById('dashSemPct').textContent = `${semM.pctFormatted}%`;
+        document.getElementById('dashSemRating').textContent = semM.rating;
+
+        document.getElementById('dashCumPct').textContent = `${cumM.cumPctFormatted}%`;
+        document.getElementById('dashCumRating').textContent = cumM.rating;
+
+        document.getElementById('dashOverallRating').textContent = cumM.rating;
+        document.getElementById('dashPassedCr').textContent = cumM.totalPassedCredits;
+        document.getElementById('dashFailedCr').textContent = cumM.totalFailedCredits;
+        document.getElementById('dashRemainingCr').textContent = cumM.remainingCredits;
+    }
+
+    function showFinalReport() {
+        showSection('step3');
+        const cumM = computeCumulativeMetrics();
+        let html = `
+            <div style="margin-bottom: 10px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px;">
+                <strong>اسم الطالب:</strong> ${state.name}<br>
+                <strong>المسار التخصصي:</strong> ${trackLabels[state.track]}
+            </div>
+        `;
+
+        semOrder.forEach(sKey => {
+            const m = computeSemesterMetrics(sKey);
+            if (m.activeCredits > 0) {
+                html += `
+                    <div style="margin-bottom: 6px;">
+                        <strong>${semLabels[sKey]}:</strong>
+                        المعدل الفصلي <span style="color: var(--primary); font-weight: 800;">${m.pctFormatted}%</span> (${m.rating})
+                        | مجتازة: ${m.passedCredits} ساعة | غير مجتازة: ${m.failedCredits} ساعة
+                    </div>
+                `;
+            }
+        });
+
+        html += `
+            <div style="margin-top: 12px; border-top: 2px solid var(--accent); background: #f1f8f5; padding: 12px; border-radius: 8px;">
+                <div style="font-size: 1.05rem; font-weight: 900; color: var(--primary);">
+                    المعدل التراكمي النهائي: ${cumM.cumPctFormatted}% (${cumM.rating})
+                </div>
+                <div><strong>إجمالي الساعات المجتازة:</strong> ${cumM.totalPassedCredits} ساعة (من أصل ${TOTAL_PLAN_CREDITS} ساعة)</div>
+                <div><strong>إجمالي الساعات غير المجتازة:</strong> ${cumM.totalFailedCredits} ساعة</div>
+                <div><strong>الساعات المتبقية للتخرج:</strong> ${cumM.remainingCredits} ساعة</div>
+            </div>
+        `;
+
+        document.getElementById('finalSummaryBox').innerHTML = html;
+    }
+
+    function sendWhatsAppReport() {
+        const cumM = computeCumulativeMetrics();
+        let text = `📊 *تقرير حاسبة التعاون للمعدل الفصلي والتراكمي* 📊\n`;
+        text += `🏫 مدرسة التعاون الثانوية للبنين\n`;
+        text += `👤 الطالب: ${state.name}\n`;
+        text += `📚 المسار: ${trackLabels[state.track]}\n\n`;
+
+        semOrder.forEach(sKey => {
+            const m = computeSemesterMetrics(sKey);
+            if (m.activeCredits > 0) {
+                text += `📌 *${semLabels[sKey]}*:\n`;
+                text += `• المعدل الفصلي: ${m.pctFormatted}% (${m.rating})\n`;
+                text += `• الساعات المجتازة: ${m.passedCredits} | غير المجتازة: ${m.failedCredits}\n\n`;
+            }
+        });
+
+        text += `⭐ *المعدل التراكمي النهائي: ${cumM.cumPctFormatted}% (${cumM.rating})*\n`;
+        text += `✅ إجمالي الساعات المجتازة: ${cumM.totalPassedCredits} ساعة\n`;
+        text += `❌ إجمالي الساعات غير المجتازة: ${cumM.totalFailedCredits} ساعة\n`;
+        text += `⏳ الساعات المتبقية للتخرج: ${cumM.remainingCredits} ساعة\n\n`;
+        text += `إعداد المرشد الأكاديمي والمهني عبدالنبي منصور محمد آل سعيد\n`;
+        text += `مع تمنيات أعضاء مكتب الإرشاد الأكاديمي والمهني لك بالتوفيق والنجاح`;
+
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function resetAll() {
+        state = {
+            name: "",
+            group: "A",
+            track: "chem_bio",
+            trackSelected: false,
+            currentSem: "sem1",
+            visitedSems: new Set(["sem1"]),
+            grades: { sem1: {}, sem2: {}, sem3: {}, sem4: {}, sem5: {}, sem6: {} },
+            improvements: [],
+            extraCourses: []
+        };
+        document.getElementById('studentName').value = "";
+        document.getElementById('liveDashboard').style.display = "none";
+        showSection('step1');
+    }
+</script>
+
+</body>
+</html>
