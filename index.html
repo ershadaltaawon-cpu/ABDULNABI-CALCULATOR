@@ -84,6 +84,20 @@
             opacity: 0.92;
         }
 
+        .users-counter-pill {
+            margin-top: 4px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #d8f3dc;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .content {
             padding: 16px;
         }
@@ -243,6 +257,12 @@
             transform: scale(0.98);
         }
 
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-secondary {
             background: #64748b;
             box-shadow: none;
@@ -274,7 +294,19 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
-            margin-bottom: 14px;
+            margin-bottom: 10px;
+        }
+
+        .sem2-rule-note {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            color: #92400e;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: none;
         }
 
         .action-box {
@@ -399,6 +431,38 @@
             margin-bottom: 14px;
             line-height: 1.8;
             font-size: 0.9rem;
+        }
+
+        .chart-card {
+            background: #ffffff;
+            border: 1.5px solid #d1fae5;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .chart-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chart-canvas-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        canvas#gpaChart {
+            width: 100%;
+            max-width: 740px;
+            height: 250px;
+            display: block;
+            margin: 0 auto;
         }
 
         .footer-note {
@@ -529,6 +593,11 @@
             <h1>حاسبة التعاون للمعدل الفصلي والتراكمي</h1>
             <p>مدرسة التعاون الثانوية للبنين - مملكة البحرين</p>
         </div>
+        <div class="users-counter-pill" id="usersCounterBadge">
+            <i class="fa-solid fa-users"></i>
+            <span>عدد مستخدمي الحاسبة:</span>
+            <strong id="usersCountValue">...</strong>
+        </div>
     </header>
 
     <div class="content">
@@ -629,7 +698,7 @@
             <!-- Improvement & Extra Course Controls (Semesters 2 to 6 ONLY) -->
             <div id="improvementSectionWrapper" style="display: none;">
                 <div class="action-btns-row">
-                    <button type="button" class="btn btn-improve" onclick="toggleImprovementBox()">
+                    <button type="button" id="improveBtn" class="btn btn-improve" onclick="toggleImprovementBox()">
                         <i class="fa-solid fa-plus-circle"></i> تقديم طلب تحسين لمقرر من فصل سابق
                     </button>
                     <button type="button" class="btn btn-extra" onclick="toggleExtraCourseBox()">
@@ -637,8 +706,10 @@
                     </button>
                 </div>
 
+                <div id="sem2RuleNote" class="sem2-rule-note"></div>
+
                 <div id="improveBox" class="action-box">
-                    <label for="improveCourseSelect">اختر المقرر المراد تحسينه (سيُحذف من فصله الأصلي ويُضاف هنا):</label>
+                    <label for="improveCourseSelect">اختر المقرر الناجح (50 فأعلى) المراد تحسينه (سيُحذف من فصله الأصلي ويُضاف هنا):</label>
                     <select id="improveCourseSelect" style="margin-bottom: 10px;"></select>
                     <div style="display: flex; gap: 8px;">
                         <button type="button" class="btn" style="margin-top: 0;" onclick="confirmAddImprovement()">
@@ -709,6 +780,15 @@
             </h2>
             <div id="finalSummaryBox" class="summary-card"></div>
 
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fa-solid fa-chart-column"></i> الرسم البياني لتطور المعدل الفصلي والتراكمي (%)
+                </div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="gpaChart" width="740" height="250"></canvas>
+                </div>
+            </div>
+
             <button type="button" class="btn btn-whatsapp" onclick="sendWhatsAppReport()">
                 <i class="fa-brands fa-whatsapp"></i> إرسال التقرير عبر واتساب
             </button>
@@ -750,6 +830,7 @@
 
 <script>
     const TOTAL_PLAN_CREDITS = 156;
+    const SEM2_MIN_SEM1_CREDITS_FOR_IMPROVEMENT = 24;
 
     const rawCoursesData = {
         level1_A: {
@@ -1013,6 +1094,14 @@
     }
 
     const semOrder = ["sem1", "sem2", "sem3", "sem4", "sem5", "sem6"];
+    const semShortLabels = {
+        sem1: "ف1",
+        sem2: "ف2",
+        sem3: "ف3",
+        sem4: "ف4",
+        sem5: "ف5",
+        sem6: "ف6"
+    };
     const semLabels = {
         sem1: "الفصل الأول (توحيد المسارات)",
         sem2: "الفصل الثاني (توحيد المسارات)",
@@ -1041,6 +1130,47 @@
     };
 
     let pendingReturnAction = null;
+
+    // --- User Counter Logic ---
+    async function initUserCounter() {
+        const countEl = document.getElementById('usersCountValue');
+        const localKey = 'altaawun_gpa_local_users_count';
+        const sessionFlag = 'altaawun_gpa_session_counted';
+
+        let localCount = parseInt(localStorage.getItem(localKey) || '0', 10);
+        if (isNaN(localCount) || localCount < 0) localCount = 0;
+
+        const isNewSession = !sessionStorage.getItem(sessionFlag);
+        if (isNewSession) {
+            localCount += 1;
+            localStorage.setItem(localKey, String(localCount));
+            sessionStorage.setItem(sessionFlag, '1');
+        }
+        if (countEl) countEl.textContent = localCount.toLocaleString('ar-BH');
+
+        // Try syncing with shared counter API when online
+        try {
+            const namespace = 'altaawun-school-gpa-bh';
+            const key = 'users-counter';
+            const endpoint = isNewSession
+                ? `https://api.counterapi.dev/v1/${namespace}/${key}/up`
+                : `https://api.counterapi.dev/v1/${namespace}/${key}`;
+
+            const res = await fetch(endpoint, { method: 'GET' });
+            if (res.ok) {
+                const data = await res.json();
+                if (typeof data.count === 'number') {
+                    const displayCount = Math.max(data.count, localCount);
+                    localStorage.setItem(localKey, String(displayCount));
+                    if (countEl) countEl.textContent = displayCount.toLocaleString('ar-BH');
+                }
+            }
+        } catch (_) {
+            // Keep local counter gracefully if offline or blocked
+        }
+    }
+
+    initUserCounter();
 
     function showSection(sectionId) {
         document.querySelectorAll('.step-section').forEach(el => el.classList.remove('active'));
@@ -1107,13 +1237,10 @@
         return true;
     }
 
-    // Check if the current semester has any entered grades before returning
     function currentSemesterHasGrades() {
         return Object.keys(state.grades[state.currentSem] || {}).length > 0;
     }
 
-    // Ask confirmation only if the student has entered grades in the current semester;
-    // upon confirmation, clear the current semester's entered grades and return to the target previous semester
     function requestReturnConfirmation(targetSemKey, goToStep1 = false) {
         const currentSemKey = state.currentSem;
 
@@ -1277,6 +1404,42 @@
         });
     }
 
+    function canImproveInCurrentSemester() {
+        if (state.currentSem === "sem1") return false;
+        if (state.currentSem === "sem2") {
+            const sem1Passed = computeSemesterMetrics("sem1").passedCredits;
+            return sem1Passed >= SEM2_MIN_SEM1_CREDITS_FOR_IMPROVEMENT;
+        }
+        return true;
+    }
+
+    function updateImprovementEligibilityUI() {
+        const improveBtn = document.getElementById('improveBtn');
+        const sem2Note = document.getElementById('sem2RuleNote');
+        if (!improveBtn || !sem2Note) return;
+
+        if (state.currentSem === "sem2") {
+            const sem1Passed = computeSemesterMetrics("sem1").passedCredits;
+            const allowed = sem1Passed >= SEM2_MIN_SEM1_CREDITS_FOR_IMPROVEMENT;
+            improveBtn.disabled = !allowed;
+            sem2Note.style.display = "block";
+            if (allowed) {
+                sem2Note.style.background = "#f0fdf4";
+                sem2Note.style.borderColor = "#86efac";
+                sem2Note.style.color = "#166534";
+                sem2Note.innerHTML = `<i class="fa-solid fa-circle-check"></i> يحق لك تقديم تحسين في الفصل الثاني لأنك اجتزت <strong>${sem1Passed}</strong> ساعة في الفصل الأول (الحد الأدنى 24 ساعة).`;
+            } else {
+                sem2Note.style.background = "#fffbeb";
+                sem2Note.style.borderColor = "#fcd34d";
+                sem2Note.style.color = "#92400e";
+                sem2Note.innerHTML = `<i class="fa-solid fa-lock"></i> لا يحق لك تقديم تحسين في الفصل الثاني حتى تجتاز <strong>24 ساعة</strong> على الأقل في الفصل الأول (المجتاز حالياً في الفصل الأول: <strong>${sem1Passed}</strong> ساعة).`;
+            }
+        } else {
+            improveBtn.disabled = false;
+            sem2Note.style.display = "none";
+        }
+    }
+
     function renderSemesterView() {
         const semKey = state.currentSem;
         renderSemNavPills();
@@ -1431,6 +1594,14 @@
             return;
         }
 
+        if (state.currentSem === "sem2") {
+            const sem1Passed = computeSemesterMetrics("sem1").passedCredits;
+            if (sem1Passed < SEM2_MIN_SEM1_CREDITS_FOR_IMPROVEMENT) {
+                alert(`لا يحق لك تقديم تحسين في الفصل الثاني حتى تجتاز 24 ساعة في الفصل الأول (المجتاز حالياً: ${sem1Passed} ساعة).`);
+                return;
+            }
+        }
+
         const currentIdx = semOrder.indexOf(state.currentSem);
         const selectEl = document.getElementById('improveCourseSelect');
         selectEl.innerHTML = "";
@@ -1442,15 +1613,16 @@
             const prevCourses = getBaseCourses(prevSem);
             prevCourses.forEach(c => {
                 const alreadyMoved = state.improvements.some(imp => imp.fromSem === prevSem && imp.code === c.code);
-                if (!alreadyMoved) {
-                    const prevGrade = state.grades[prevSem][c.code];
-                    const gradeLabel = prevGrade !== undefined ? ` - الدرجة الحالية: ${prevGrade}` : "";
+                const prevGrade = state.grades[prevSem][c.code];
+                // Failed courses (< 50) or ungraded courses are NOT eligible for improvement
+                const isPassedCourse = prevGrade !== undefined && !isNaN(prevGrade) && prevGrade >= 50;
+                if (!alreadyMoved && isPassedCourse) {
                     eligible.push({
                         fromSem: prevSem,
                         code: c.code,
                         name: c.name,
                         credits: c.credits,
-                        label: `${c.code} - ${c.name} (${semLabels[prevSem]})${gradeLabel}`
+                        label: `${c.code} - ${c.name} (${semLabels[prevSem]}) - الدرجة الحالية: ${prevGrade}`
                     });
                 }
             });
@@ -1459,7 +1631,7 @@
         eligible.sort((a, b) => normalizeArabicCode(a.code).localeCompare(normalizeArabicCode(b.code), 'ar'));
 
         if (eligible.length === 0) {
-            alert("لا توجد مقررات متاحة للتحسين من الفصول السابقة.");
+            alert("لا توجد مقررات ناجحة (50 فأعلى) متاحة للتحسين من الفصول السابقة. مقررات الرسوب لا يُسمح بتسجيلها ضمن التحسين.");
             return;
         }
 
@@ -1637,6 +1809,102 @@
         document.getElementById('dashPassedCr').textContent = cumM.totalPassedCredits;
         document.getElementById('dashFailedCr').textContent = cumM.totalFailedCredits;
         document.getElementById('dashRemainingCr').textContent = cumM.remainingCredits;
+
+        updateImprovementEligibilityUI();
+    }
+
+    function renderFinalChart() {
+        const canvas = document.getElementById('gpaChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        ctx.clearRect(0, 0, width, height);
+
+        const padLeft = 48;
+        const padRight = 24;
+        const padTop = 34;
+        const padBottom = 42;
+        const plotW = width - padLeft - padRight;
+        const plotH = height - padTop - padBottom;
+
+        // Horizontal grid lines (0 to 100)
+        ctx.font = 'bold 11px Cairo, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+
+        [0, 25, 50, 75, 100].forEach(val => {
+            const y = padTop + plotH - (val / 100) * plotH;
+            ctx.strokeStyle = val === 50 ? '#fca5a5' : '#e5e7eb';
+            ctx.lineWidth = val === 50 ? 1.5 : 1;
+            ctx.beginPath();
+            ctx.moveTo(padLeft, y);
+            ctx.lineTo(width - padRight, y);
+            ctx.stroke();
+
+            ctx.fillStyle = '#6b7280';
+            ctx.fillText(`${val}%`, padLeft - 7, y);
+        });
+
+        const semStats = semOrder.map((sKey, i) => {
+            const m = computeSemesterMetrics(sKey);
+            return {
+                label: semShortLabels[sKey],
+                pct: m.activeCredits > 0 ? parseFloat(m.pctFormatted) : 0,
+                active: m.activeCredits > 0
+            };
+        });
+
+        const barSlotW = plotW / semStats.length;
+        const barW = Math.min(46, barSlotW * 0.52);
+
+        // Draw semester bars
+        semStats.forEach((st, idx) => {
+            const centerX = padLeft + barSlotW * idx + barSlotW / 2;
+            const barH = (st.pct / 100) * plotH;
+            const y = padTop + plotH - barH;
+
+            const grad = ctx.createLinearGradient(0, y, 0, padTop + plotH);
+            grad.addColorStop(0, '#2d6a4f');
+            grad.addColorStop(1, '#52b788');
+
+            ctx.fillStyle = st.active ? grad : '#cbd5e1';
+            ctx.beginPath();
+            ctx.roundRect(centerX - barW / 2, y, barW, Math.max(barH, 2), [6, 6, 0, 0]);
+            ctx.fill();
+
+            // Value label above bar
+            ctx.fillStyle = '#1b4332';
+            ctx.font = 'bold 11px Cairo, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(st.active ? `${st.pct.toFixed(1)}%` : '-', centerX, y - 9);
+
+            // Semester label below axis
+            ctx.fillStyle = '#374151';
+            ctx.fillText(st.label, centerX, padTop + plotH + 16);
+        });
+
+        // Draw cumulative average dashed line
+        const cumM = computeCumulativeMetrics();
+        if (cumM.totalActiveCredits > 0) {
+            const cumVal = parseFloat(cumM.cumPctFormatted);
+            const cumY = padTop + plotH - (cumVal / 100) * plotH;
+
+            ctx.save();
+            ctx.setLineDash([6, 4]);
+            ctx.strokeStyle = '#0369a1';
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.moveTo(padLeft, cumY);
+            ctx.lineTo(width - padRight, cumY);
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.fillStyle = '#0369a1';
+            ctx.font = 'bold 11px Cairo, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(`المعدل التراكمي: ${cumM.cumPctFormatted}%`, padLeft + 6, Math.max(padTop + 10, cumY - 8));
+        }
     }
 
     function showFinalReport() {
@@ -1674,6 +1942,7 @@
         `;
 
         document.getElementById('finalSummaryBox').innerHTML = html;
+        renderFinalChart();
     }
 
     function sendWhatsAppReport() {
