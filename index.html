@@ -489,7 +489,7 @@
             font-size: 0.82rem;
         }
 
-        /* Custom Confirmation Modal */
+        /* Custom Modals */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -510,12 +510,16 @@
         .modal-card {
             background: #ffffff;
             width: 100%;
-            max-width: 430px;
+            max-width: 450px;
             border-radius: 16px;
             padding: 22px 18px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
             text-align: center;
             border-top: 5px solid #f59e0b;
+        }
+
+        .modal-card.danger-top {
+            border-top-color: #dc2626;
         }
 
         .modal-icon {
@@ -531,6 +535,11 @@
             margin: 0 auto 12px;
         }
 
+        .modal-card.danger-top .modal-icon {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
         .modal-title {
             font-size: 1.1rem;
             font-weight: 900;
@@ -543,6 +552,27 @@
             color: #4b5563;
             line-height: 1.7;
             margin-bottom: 18px;
+            text-align: right;
+        }
+
+        .failed-courses-list {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            list-style: none;
+            font-size: 0.85rem;
+            color: #991b1b;
+            font-weight: 700;
+        }
+
+        .failed-courses-list li {
+            margin-bottom: 4px;
+        }
+
+        .failed-courses-list li:last-child {
+            margin-bottom: 0;
         }
 
         .modal-actions {
@@ -709,7 +739,7 @@
                 <div id="sem2RuleNote" class="sem2-rule-note"></div>
 
                 <div id="improveBox" class="action-box">
-                    <label for="improveCourseSelect">اختر المقرر الناجح (50 فأعلى) المراد تحسينه (سيُحذف من فصله الأصلي ويُضاف هنا):</label>
+                    <label for="improveCourseSelect">اختر المقرر المتاح للتحسين (ناجح من 50 إلى 99.5؛ سيُحذف من فصله الأصلي ويُضاف هنا):</label>
                     <select id="improveCourseSelect" style="margin-bottom: 10px;"></select>
                     <div style="display: flex; gap: 8px;">
                         <button type="button" class="btn" style="margin-top: 0;" onclick="confirmAddImprovement()">
@@ -814,7 +844,7 @@
             <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
         <div class="modal-title">تأكيد الرجوع وتصفير الدرجات المدخلة</div>
-        <div class="modal-desc" id="confirmReturnText">
+        <div class="modal-desc" id="confirmReturnText" style="text-align: center;">
             عند الرجوع سيتم تصفير الدرجات التي أدخلتها في هذا الفصل. هل توافق على المتابعة؟
         </div>
         <div class="modal-actions">
@@ -823,6 +853,25 @@
             </button>
             <button type="button" class="btn btn-secondary" onclick="closeConfirmReturnModal()">
                 <i class="fa-solid fa-xmark"></i> إلغاء
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Failed Credits Reminder Before Final Report Modal -->
+<div id="failedReminderModal" class="modal-overlay">
+    <div class="modal-card danger-top">
+        <div class="modal-icon">
+            <i class="fa-solid fa-circle-exclamation"></i>
+        </div>
+        <div class="modal-title">تنبيه: توجد ساعات غير مجتازة</div>
+        <div class="modal-desc" id="failedReminderBody"></div>
+        <div class="modal-actions">
+            <button type="button" class="btn" id="proceedToReportBtn">
+                <i class="fa-solid fa-file-lines"></i> متابعة إلى التقرير النهائي
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="closeFailedReminderModal()">
+                <i class="fa-solid fa-pen"></i> العودة للمراجعة
             </button>
         </div>
     </div>
@@ -1117,6 +1166,15 @@
         literary: "المسار الأدبي"
     };
 
+    // Exact improvement source semester per target semester
+    const improvementAllowedSources = {
+        sem2: ["sem1"],
+        sem3: ["sem1"],
+        sem4: ["sem2"],
+        sem5: ["sem3"],
+        sem6: ["sem4"]
+    };
+
     let state = {
         name: "",
         group: "A",
@@ -1148,7 +1206,6 @@
         }
         if (countEl) countEl.textContent = localCount.toLocaleString('ar-BH');
 
-        // Try syncing with shared counter API when online
         try {
             const namespace = 'altaawun-school-gpa-bh';
             const key = 'users-counter';
@@ -1290,6 +1347,53 @@
         }
     });
 
+    function collectFailedCourses() {
+        const failed = [];
+        semOrder.forEach(sKey => {
+            const courses = getEffectiveSemesterCourses(sKey);
+            courses.forEach(c => {
+                if (c.isMovedOut) return;
+                const g = state.grades[sKey][c.code];
+                if (g !== undefined && !isNaN(g) && g < 50) {
+                    failed.push({
+                        semLabel: semLabels[sKey],
+                        code: c.code,
+                        name: c.name,
+                        credits: c.credits,
+                        grade: g
+                    });
+                }
+            });
+        });
+        return failed;
+    }
+
+    function attemptOpenFinalReport() {
+        const failedCourses = collectFailedCourses();
+        if (failedCourses.length > 0) {
+            const totalFailedCr = failedCourses.reduce((sum, item) => sum + item.credits, 0);
+            const listItems = failedCourses.map(item =>
+                `<li>• <strong>${item.code} - ${item.name}</strong> (${item.semLabel}) — الدرجة: ${item.grade} (${item.credits} ساعات)</li>`
+            ).join("");
+
+            document.getElementById('failedReminderBody').innerHTML =
+                `لديك <strong>${totalFailedCr}</strong> ساعة غير مجتازة في المقررات التالية:<ul class="failed-courses-list">${listItems}</ul>`;
+
+            document.getElementById('failedReminderModal').classList.add('open');
+            return;
+        }
+        showFinalReport();
+    }
+
+    function closeFailedReminderModal() {
+        document.getElementById('failedReminderModal').classList.remove('open');
+    }
+
+    document.getElementById('proceedToReportBtn').addEventListener('click', function () {
+        closeFailedReminderModal();
+        showFinalReport();
+    });
+
     function navigateToSemester(semKey) {
         const currentIdx = semOrder.indexOf(state.currentSem);
         const targetIdx = semOrder.indexOf(semKey);
@@ -1316,7 +1420,7 @@
         } else if (idx < semOrder.length - 1) {
             navigateToSemester(semOrder[idx + 1]);
         } else {
-            showFinalReport();
+            attemptOpenFinalReport();
         }
     }
 
@@ -1402,15 +1506,6 @@
             };
             container.appendChild(btn);
         });
-    }
-
-    function canImproveInCurrentSemester() {
-        if (state.currentSem === "sem1") return false;
-        if (state.currentSem === "sem2") {
-            const sem1Passed = computeSemesterMetrics("sem1").passedCredits;
-            return sem1Passed >= SEM2_MIN_SEM1_CREDITS_FOR_IMPROVEMENT;
-        }
-        return true;
     }
 
     function updateImprovementEligibilityUI() {
@@ -1602,21 +1697,20 @@
             }
         }
 
-        const currentIdx = semOrder.indexOf(state.currentSem);
+        const allowedSourceSems = improvementAllowedSources[state.currentSem] || [];
         const selectEl = document.getElementById('improveCourseSelect');
         selectEl.innerHTML = "";
 
         let eligible = [];
-        for (let i = 0; i < currentIdx; i++) {
-            const prevSem = semOrder[i];
-            if (i >= 2 && !state.trackSelected) continue;
+        allowedSourceSems.forEach(prevSem => {
+            const prevIdx = semOrder.indexOf(prevSem);
+            if (prevIdx >= 2 && !state.trackSelected) return;
             const prevCourses = getBaseCourses(prevSem);
             prevCourses.forEach(c => {
                 const alreadyMoved = state.improvements.some(imp => imp.fromSem === prevSem && imp.code === c.code);
                 const prevGrade = state.grades[prevSem][c.code];
-                // Failed courses (< 50) or ungraded courses are NOT eligible for improvement
-                const isPassedCourse = prevGrade !== undefined && !isNaN(prevGrade) && prevGrade >= 50;
-                if (!alreadyMoved && isPassedCourse) {
+                const isEligibleGrade = prevGrade !== undefined && !isNaN(prevGrade) && prevGrade >= 50 && prevGrade < 100;
+                if (!alreadyMoved && isEligibleGrade) {
                     eligible.push({
                         fromSem: prevSem,
                         code: c.code,
@@ -1626,12 +1720,12 @@
                     });
                 }
             });
-        }
+        });
 
         eligible.sort((a, b) => normalizeArabicCode(a.code).localeCompare(normalizeArabicCode(b.code), 'ar'));
 
         if (eligible.length === 0) {
-            alert("لا توجد مقررات ناجحة (50 فأعلى) متاحة للتحسين من الفصول السابقة. مقررات الرسوب لا يُسمح بتسجيلها ضمن التحسين.");
+            alert("لا توجد مقررات متاحة للتحسين في هذا الفصل وفق الضوابط المحددة.");
             return;
         }
 
@@ -1828,7 +1922,6 @@
         const plotW = width - padLeft - padRight;
         const plotH = height - padTop - padBottom;
 
-        // Horizontal grid lines (0 to 100)
         ctx.font = 'bold 11px Cairo, sans-serif';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
@@ -1846,7 +1939,7 @@
             ctx.fillText(`${val}%`, padLeft - 7, y);
         });
 
-        const semStats = semOrder.map((sKey, i) => {
+        const semStats = semOrder.map((sKey) => {
             const m = computeSemesterMetrics(sKey);
             return {
                 label: semShortLabels[sKey],
@@ -1858,7 +1951,6 @@
         const barSlotW = plotW / semStats.length;
         const barW = Math.min(46, barSlotW * 0.52);
 
-        // Draw semester bars
         semStats.forEach((st, idx) => {
             const centerX = padLeft + barSlotW * idx + barSlotW / 2;
             const barH = (st.pct / 100) * plotH;
@@ -1873,18 +1965,15 @@
             ctx.roundRect(centerX - barW / 2, y, barW, Math.max(barH, 2), [6, 6, 0, 0]);
             ctx.fill();
 
-            // Value label above bar
             ctx.fillStyle = '#1b4332';
             ctx.font = 'bold 11px Cairo, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText(st.active ? `${st.pct.toFixed(1)}%` : '-', centerX, y - 9);
 
-            // Semester label below axis
             ctx.fillStyle = '#374151';
             ctx.fillText(st.label, centerX, padTop + plotH + 16);
         });
 
-        // Draw cumulative average dashed line
         const cumM = computeCumulativeMetrics();
         if (cumM.totalActiveCredits > 0) {
             const cumVal = parseFloat(cumM.cumPctFormatted);
