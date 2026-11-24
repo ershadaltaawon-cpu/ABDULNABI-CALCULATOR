@@ -442,14 +442,53 @@
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
         }
 
+        .chart-header-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
         .chart-title {
             font-size: 0.95rem;
             font-weight: 800;
             color: var(--primary);
-            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-box {
+            width: 13px;
+            height: 13px;
+            border-radius: 3px;
+            background: linear-gradient(135deg, #2d6a4f, #52b788);
+            display: inline-block;
+        }
+
+        .legend-line {
+            width: 16px;
+            height: 3px;
+            border-radius: 2px;
+            background: #0369a1;
+            display: inline-block;
         }
 
         .chart-canvas-wrap {
@@ -460,7 +499,7 @@
         canvas#gpaChart {
             width: 100%;
             max-width: 740px;
-            height: 250px;
+            height: 265px;
             display: block;
             margin: 0 auto;
         }
@@ -811,11 +850,17 @@
             <div id="finalSummaryBox" class="summary-card"></div>
 
             <div class="chart-card">
-                <div class="chart-title">
-                    <i class="fa-solid fa-chart-column"></i> الرسم البياني لتطور المعدل الفصلي والتراكمي (%)
+                <div class="chart-header-row">
+                    <div class="chart-title">
+                        <i class="fa-solid fa-chart-line"></i> مقارنة المعدل الفصلي والمعدل التراكمي (%)
+                    </div>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="legend-box"></span> المعدل الفصلي</span>
+                        <span class="legend-item"><span class="legend-line"></span> المعدل التراكمي</span>
+                    </div>
                 </div>
                 <div class="chart-canvas-wrap">
-                    <canvas id="gpaChart" width="740" height="250"></canvas>
+                    <canvas id="gpaChart" width="740" height="265"></canvas>
                 </div>
             </div>
 
@@ -1164,6 +1209,12 @@
         phys_math: "علمي (فيزياء - رياضيات)",
         commercial: "المسار التجاري",
         literary: "المسار الأدبي"
+    };
+
+    // Allowed improvement codes in Semester 2 per group
+    const sem2AllowedImprovementCodes = {
+        A: new Set(["فيز102", "حيا102", "قصد101"].map(normalizeArabicCode)),
+        B: new Set(["وطن101", "أجا102", "أسر102", "كيم102"].map(normalizeArabicCode))
     };
 
     // Exact improvement source semester per target semester
@@ -1516,13 +1567,17 @@
         if (state.currentSem === "sem2") {
             const sem1Passed = computeSemesterMetrics("sem1").passedCredits;
             const allowed = sem1Passed >= SEM2_MIN_SEM1_CREDITS_FOR_IMPROVEMENT;
+            const allowedListStr = state.group === "A"
+                ? "فيز102، حيا102، قصد101"
+                : "وطن101، أجا102، أسر102، كيم102";
+
             improveBtn.disabled = !allowed;
             sem2Note.style.display = "block";
             if (allowed) {
                 sem2Note.style.background = "#f0fdf4";
                 sem2Note.style.borderColor = "#86efac";
                 sem2Note.style.color = "#166534";
-                sem2Note.innerHTML = `<i class="fa-solid fa-circle-check"></i> يحق لك تقديم تحسين في الفصل الثاني لأنك اجتزت <strong>${sem1Passed}</strong> ساعة في الفصل الأول (الحد الأدنى 24 ساعة).`;
+                sem2Note.innerHTML = `<i class="fa-solid fa-circle-check"></i> يحق لك تقديم تحسين في الفصل الثاني (${allowedListStr}) لأنك اجتزت <strong>${sem1Passed}</strong> ساعة في الفصل الأول.`;
             } else {
                 sem2Note.style.background = "#fffbeb";
                 sem2Note.style.borderColor = "#fcd34d";
@@ -1707,6 +1762,11 @@
             if (prevIdx >= 2 && !state.trackSelected) return;
             const prevCourses = getBaseCourses(prevSem);
             prevCourses.forEach(c => {
+                if (state.currentSem === "sem2") {
+                    const groupSet = sem2AllowedImprovementCodes[state.group];
+                    if (!groupSet || !groupSet.has(normalizeArabicCode(c.code))) return;
+                }
+
                 const alreadyMoved = state.improvements.some(imp => imp.fromSem === prevSem && imp.code === c.code);
                 const prevGrade = state.grades[prevSem][c.code];
                 const isEligibleGrade = prevGrade !== undefined && !isNaN(prevGrade) && prevGrade >= 50 && prevGrade < 100;
@@ -1725,7 +1785,7 @@
         eligible.sort((a, b) => normalizeArabicCode(a.code).localeCompare(normalizeArabicCode(b.code), 'ar'));
 
         if (eligible.length === 0) {
-            alert("لا توجد مقررات متاحة للتحسين في هذا الفصل وفق الضوابط المحددة.");
+            alert("لا توجد مقررات متاحة للتحسين في هذا الفصل وفق الضوابط والمجموعة المحددة.");
             return;
         }
 
@@ -1917,7 +1977,7 @@
 
         const padLeft = 48;
         const padRight = 24;
-        const padTop = 34;
+        const padTop = 36;
         const padBottom = 42;
         const plotW = width - padLeft - padRight;
         const plotH = height - padTop - padBottom;
@@ -1939,60 +1999,92 @@
             ctx.fillText(`${val}%`, padLeft - 7, y);
         });
 
+        // Compute both semester GPA and cumulative GPA up to each semester
+        let runningWeighted = 0;
+        let runningCredits = 0;
+
         const semStats = semOrder.map((sKey) => {
             const m = computeSemesterMetrics(sKey);
+            const active = m.activeCredits > 0;
+            if (active) {
+                runningWeighted += m.weightedSum;
+                runningCredits += m.activeCredits;
+            }
+            const cumVal = runningCredits > 0 ? parseFloat((runningWeighted / runningCredits).toFixed(1)) : null;
+
             return {
                 label: semShortLabels[sKey],
-                pct: m.activeCredits > 0 ? parseFloat(m.pctFormatted) : 0,
-                active: m.activeCredits > 0
+                semPct: active ? parseFloat(m.pctFormatted) : null,
+                cumPct: cumVal,
+                active
             };
         });
 
         const barSlotW = plotW / semStats.length;
-        const barW = Math.min(46, barSlotW * 0.52);
+        const barW = Math.min(44, barSlotW * 0.48);
 
+        // 1. Draw Semester GPA bars
+        const cumPoints = [];
         semStats.forEach((st, idx) => {
             const centerX = padLeft + barSlotW * idx + barSlotW / 2;
-            const barH = (st.pct / 100) * plotH;
+            const valForBar = st.active ? st.semPct : 0;
+            const barH = (valForBar / 100) * plotH;
             const y = padTop + plotH - barH;
 
             const grad = ctx.createLinearGradient(0, y, 0, padTop + plotH);
             grad.addColorStop(0, '#2d6a4f');
             grad.addColorStop(1, '#52b788');
 
-            ctx.fillStyle = st.active ? grad : '#cbd5e1';
+            ctx.fillStyle = st.active ? grad : '#e2e8f0';
             ctx.beginPath();
             ctx.roundRect(centerX - barW / 2, y, barW, Math.max(barH, 2), [6, 6, 0, 0]);
             ctx.fill();
 
+            // Semester GPA label
             ctx.fillStyle = '#1b4332';
-            ctx.font = 'bold 11px Cairo, sans-serif';
+            ctx.font = 'bold 10.5px Cairo, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(st.active ? `${st.pct.toFixed(1)}%` : '-', centerX, y - 9);
+            ctx.fillText(st.active ? `${st.semPct.toFixed(1)}%` : '-', centerX, y - 9);
 
+            // Semester X-axis label
             ctx.fillStyle = '#374151';
+            ctx.font = 'bold 11px Cairo, sans-serif';
             ctx.fillText(st.label, centerX, padTop + plotH + 16);
+
+            if (st.active && st.cumPct !== null) {
+                const cumY = padTop + plotH - (st.cumPct / 100) * plotH;
+                cumPoints.push({ x: centerX, y: cumY, val: st.cumPct });
+            }
         });
 
-        const cumM = computeCumulativeMetrics();
-        if (cumM.totalActiveCredits > 0) {
-            const cumVal = parseFloat(cumM.cumPctFormatted);
-            const cumY = padTop + plotH - (cumVal / 100) * plotH;
-
+        // 2. Draw Cumulative GPA connected line & markers
+        if (cumPoints.length > 0) {
             ctx.save();
-            ctx.setLineDash([6, 4]);
             ctx.strokeStyle = '#0369a1';
-            ctx.lineWidth = 2.2;
+            ctx.lineWidth = 2.5;
             ctx.beginPath();
-            ctx.moveTo(padLeft, cumY);
-            ctx.lineTo(width - padRight, cumY);
+            cumPoints.forEach((pt, i) => {
+                if (i === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            });
             ctx.stroke();
-            ctx.restore();
 
-            ctx.fillStyle = '#0369a1';
-            ctx.font = 'bold 11px Cairo, sans-serif';
-            ctx.textAlign = 'left';
-            ctx.fillText(`المعدل التراكمي: ${cumM.cumPctFormatted}%`, padLeft + 6, Math.max(padTop + 10, cumY - 8));
+            cumPoints.forEach((pt) => {
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = '#0369a1';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#0369a1';
+                ctx.font = 'bold 10px Cairo, sans-serif';
+                ctx.textAlign = 'center';
+                const labelY = pt.y > 24 ? pt.y - 11 : pt.y + 13;
+                ctx.fillText(`ت:${pt.val.toFixed(1)}%`, pt.x, labelY);
+            });
+            ctx.restore();
         }
     }
 
