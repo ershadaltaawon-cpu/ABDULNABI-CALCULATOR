@@ -780,7 +780,7 @@
             <h2 id="resitHeading" style="margin-bottom: 10px; color: var(--primary); font-size: 1.15rem;">
                 <i class="fa-solid fa-rotate"></i> الدور الثاني لنهاية السنة الدراسية
             </h2>
-            <div class="resit-banner">
+            <div class="resit-banner" id="resitBannerDesc">
                 <i class="fa-solid fa-circle-info"></i>
                 يُتاح الدور الثاني في نهاية السنة الدراسية لمن لديه مقررات رسوب؛ يمكنك تحديد المقررات التي ترغب في تقديمها في هذا الدور الثاني وإدخال درجتها الجديدة، أو ترك أي مقرر غير محدد لتقديمه في الدور الثاني في السنوات الأخرى.
             </div>
@@ -1269,6 +1269,11 @@
         sem4: "نهاية السنة الدراسية الثانية (الفصل الثالث والرابع)",
         sem6: "نهاية السنة الدراسية الثالثة (الفصل الخامس والسادس)"
     };
+    const resitSemestersByYear = {
+        sem2: ["sem1", "sem2"],
+        sem4: ["sem3", "sem4"],
+        sem6: ["sem5", "sem6"]
+    };
     const trackLabels = {
         chem_bio: "علمي (كيمياء - أحياء)",
         phys_math: "علمي (فيزياء - رياضيات)",
@@ -1466,18 +1471,18 @@
         }
     });
 
-    // --- Resit (الدور الثاني) At End of Each Academic Year (after sem2, sem4, sem6) ---
+    // --- Resit (الدور الثاني) At End of Each Academic Year (sem2: sem1+sem2, sem4: sem3+sem4, sem6: sem5+sem6) ---
     function isEndOfAcademicYear(semKey) {
-        return semKey === "sem2" || semKey === "sem4" || semKey === "sem6";
+        return Boolean(resitSemestersByYear[semKey]);
     }
 
-    function getFailedCoursesUpToSemester(maxSemKey) {
-        const maxIdx = semOrder.indexOf(maxSemKey);
+    function getFailedCoursesInAcademicYear(yearEndSemKey) {
+        const targetSems = resitSemestersByYear[yearEndSemKey] || [];
         const failedList = [];
 
-        for (let i = 0; i <= maxIdx; i++) {
-            const sKey = semOrder[i];
-            if (i >= 2 && !state.trackSelected) continue;
+        targetSems.forEach(sKey => {
+            const idx = semOrder.indexOf(sKey);
+            if (idx >= 2 && !state.trackSelected) return;
             const courses = getEffectiveSemesterCourses(sKey);
             courses.forEach(c => {
                 if (c.isMovedOut) return;
@@ -1496,7 +1501,7 @@
                     });
                 }
             });
-        }
+        });
         return failedList;
     }
 
@@ -1514,7 +1519,7 @@
             return;
         }
 
-        const failed = getFailedCoursesUpToSemester(afterSemKey);
+        const failed = getFailedCoursesInAcademicYear(afterSemKey);
         if (failed.length === 0) {
             nextAction();
             return;
@@ -1615,7 +1620,7 @@
 
     function continueAfterResit() {
         if (state.resitContext) {
-            const failed = getFailedCoursesUpToSemester(state.resitContext.afterSem);
+            const failed = getFailedCoursesInAcademicYear(state.resitContext.afterSem);
             for (const item of failed) {
                 const key = `${item.semKey}_${item.code}`;
                 if (state.resitSelections[key]) {
@@ -1721,20 +1726,17 @@
         const curSem = state.currentSem;
 
         if (curSem === "sem1") {
-            // End of Semester 1 -> move directly to Semester 2 (resit is at end of academic year after Semester 2)
             state.currentSem = "sem2";
             state.visitedSems.add("sem2");
             showSection('step2');
             renderSemesterView();
         } else if (curSem === "sem2") {
-            // End of Year 1 -> resit if failed, then track selection
             const goTrack = () => showSection('stepTrackSelection');
             maybeProceedWithEndOfYearResit("sem2", goTrack, () => {
                 showSection('step2');
                 renderSemesterView();
             });
         } else if (curSem === "sem4") {
-            // End of Year 2 -> resit if failed, then Semester 5
             const goSem5 = () => {
                 state.currentSem = "sem5";
                 state.visitedSems.add("sem5");
@@ -1746,7 +1748,6 @@
                 renderSemesterView();
             });
         } else if (curSem === "sem6") {
-            // End of Year 3 -> resit if failed, then Final Report
             const goReport = () => attemptOpenFinalReport();
             maybeProceedWithEndOfYearResit("sem6", goReport, () => {
                 showSection('step2');
