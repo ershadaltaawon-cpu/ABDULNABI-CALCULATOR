@@ -775,14 +775,14 @@
             </button>
         </div>
 
-        <!-- Step Resit Between Semesters -->
+        <!-- Step Resit At End of Academic Year -->
         <div id="stepResit" class="step-section">
             <h2 id="resitHeading" style="margin-bottom: 10px; color: var(--primary); font-size: 1.15rem;">
-                <i class="fa-solid fa-rotate"></i> الدور الثاني
+                <i class="fa-solid fa-rotate"></i> الدور الثاني لنهاية السنة الدراسية
             </h2>
             <div class="resit-banner">
                 <i class="fa-solid fa-circle-info"></i>
-                تظهر مقررات الرسوب المتاحة أمامك؛ يمكنك تحديد المقررات التي ترغب في تقديمها في هذا الدور الثاني وإدخال درجتها الجديدة، أو ترك أي مقرر غير محدد لتقديمه في الدور الثاني في الفصول أو السنوات القادمة.
+                يُتاح الدور الثاني في نهاية السنة الدراسية لمن لديه مقررات رسوب؛ يمكنك تحديد المقررات التي ترغب في تقديمها في هذا الدور الثاني وإدخال درجتها الجديدة، أو ترك أي مقرر غير محدد لتقديمه في الدور الثاني في السنوات الأخرى.
             </div>
 
             <div class="table-responsive">
@@ -1264,6 +1264,11 @@
         sem5: "الفصل الخامس",
         sem6: "الفصل السادس"
     };
+    const academicYearLabels = {
+        sem2: "نهاية السنة الدراسية الأولى (الفصل الأول والثاني)",
+        sem4: "نهاية السنة الدراسية الثانية (الفصل الثالث والرابع)",
+        sem6: "نهاية السنة الدراسية الثالثة (الفصل الخامس والسادس)"
+    };
     const trackLabels = {
         chem_bio: "علمي (كيمياء - أحياء)",
         phys_math: "علمي (فيزياء - رياضيات)",
@@ -1296,9 +1301,9 @@
         grades: { sem1: {}, sem2: {}, sem3: {}, sem4: {}, sem5: {}, sem6: {} },
         improvements: [],
         extraCourses: [],
-        resitSelections: {}, // key: `${semKey}_${code}` -> boolean
-        resitGrades: {},     // key: `${semKey}_${code}` -> number
-        resitContext: null   // { afterSem: "sem1".."sem6", nextAction: function, backAction: function }
+        resitSelections: {},
+        resitGrades: {},
+        resitContext: null
     };
 
     let pendingReturnAction = null;
@@ -1461,7 +1466,11 @@
         }
     });
 
-    // --- Resit (الدور الثاني) Between Semesters ---
+    // --- Resit (الدور الثاني) At End of Each Academic Year (after sem2, sem4, sem6) ---
+    function isEndOfAcademicYear(semKey) {
+        return semKey === "sem2" || semKey === "sem4" || semKey === "sem6";
+    }
+
     function getFailedCoursesUpToSemester(maxSemKey) {
         const maxIdx = semOrder.indexOf(maxSemKey);
         const failedList = [];
@@ -1474,7 +1483,6 @@
                 if (c.isMovedOut) return;
                 const baseGrade = state.grades[sKey][c.code];
                 const effGrade = getEffectiveCourseGrade(sKey, c.code);
-                // Eligible for resit if original grade < 50 (or currently < 50)
                 if ((baseGrade !== undefined && !isNaN(baseGrade) && baseGrade < 50) ||
                     (effGrade !== undefined && !isNaN(effGrade) && effGrade < 50)) {
                     failedList.push({
@@ -1500,7 +1508,12 @@
         return state.grades[semKey][code];
     }
 
-    function maybeProceedWithResit(afterSemKey, nextAction, backAction) {
+    function maybeProceedWithEndOfYearResit(afterSemKey, nextAction, backAction) {
+        if (!isEndOfAcademicYear(afterSemKey)) {
+            nextAction();
+            return;
+        }
+
         const failed = getFailedCoursesUpToSemester(afterSemKey);
         if (failed.length === 0) {
             nextAction();
@@ -1514,7 +1527,7 @@
         };
 
         document.getElementById('resitHeading').innerHTML =
-            `<i class="fa-solid fa-rotate"></i> الدور الثاني (بعد ${semLabels[afterSemKey]})`;
+            `<i class="fa-solid fa-rotate"></i> الدور الثاني — ${academicYearLabels[afterSemKey]}`;
 
         const tbody = document.getElementById('resitTableBody');
         tbody.innerHTML = "";
@@ -1601,7 +1614,6 @@
     }
 
     function continueAfterResit() {
-        // Validate any checked resit course has a grade entered
         if (state.resitContext) {
             const failed = getFailedCoursesUpToSemester(state.resitContext.afterSem);
             for (const item of failed) {
@@ -1693,7 +1705,7 @@
                 showSection('step2');
                 renderSemesterView();
             };
-            maybeProceedWithResit(prevSem, goTarget, () => {
+            maybeProceedWithEndOfYearResit(prevSem, goTarget, () => {
                 showSection('step2');
                 renderSemesterView();
             });
@@ -1709,21 +1721,39 @@
         const curSem = state.currentSem;
 
         if (curSem === "sem1") {
-            navigateToSemester("sem2");
+            // End of Semester 1 -> move directly to Semester 2 (resit is at end of academic year after Semester 2)
+            state.currentSem = "sem2";
+            state.visitedSems.add("sem2");
+            showSection('step2');
+            renderSemesterView();
         } else if (curSem === "sem2") {
+            // End of Year 1 -> resit if failed, then track selection
             const goTrack = () => showSection('stepTrackSelection');
-            maybeProceedWithResit("sem2", goTrack, () => {
+            maybeProceedWithEndOfYearResit("sem2", goTrack, () => {
+                showSection('step2');
+                renderSemesterView();
+            });
+        } else if (curSem === "sem4") {
+            // End of Year 2 -> resit if failed, then Semester 5
+            const goSem5 = () => {
+                state.currentSem = "sem5";
+                state.visitedSems.add("sem5");
+                showSection('step2');
+                renderSemesterView();
+            };
+            maybeProceedWithEndOfYearResit("sem4", goSem5, () => {
+                showSection('step2');
+                renderSemesterView();
+            });
+        } else if (curSem === "sem6") {
+            // End of Year 3 -> resit if failed, then Final Report
+            const goReport = () => attemptOpenFinalReport();
+            maybeProceedWithEndOfYearResit("sem6", goReport, () => {
                 showSection('step2');
                 renderSemesterView();
             });
         } else if (idx < semOrder.length - 1) {
             navigateToSemester(semOrder[idx + 1]);
-        } else {
-            const goReport = () => attemptOpenFinalReport();
-            maybeProceedWithResit("sem6", goReport, () => {
-                showSection('step2');
-                renderSemesterView();
-            });
         }
     }
 
@@ -2015,7 +2045,6 @@
         }
 
         const allowedSourceSems = new Set(improvementAllowedSources[state.currentSem] || []);
-        // Exception: وطن201 and وطن301 can be submitted for improvement in sem1 and sem2 in specialized tracks
         const allowSpecialNationalInSem1Sem2 = state.trackSelected && (state.currentSem === "sem1" || state.currentSem === "sem2");
         if (allowSpecialNationalInSem1Sem2) {
             allowedSourceSems.add("sem1");
@@ -2316,13 +2345,11 @@
             ctx.roundRect(centerX - barW / 2, y, barW, Math.max(barH, 2), [6, 6, 0, 0]);
             ctx.fill();
 
-            // Semester GPA label cleanly above bar
             ctx.fillStyle = '#1b4332';
             ctx.font = 'bold 10.5px Cairo, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText(st.active ? `ف:${st.semPct.toFixed(1)}%` : '-', centerX, Math.max(padTop - 12, y - 10));
 
-            // X-axis semester label
             ctx.fillStyle = '#374151';
             ctx.font = 'bold 11px Cairo, sans-serif';
             ctx.fillText(st.label, centerX, padTop + plotH + 16);
@@ -2333,7 +2360,6 @@
             }
         });
 
-        // Draw Cumulative GPA line & pill badges separated from bar labels
         if (cumPoints.length > 0) {
             ctx.save();
             ctx.strokeStyle = '#0369a1';
@@ -2354,7 +2380,6 @@
                 ctx.fill();
                 ctx.stroke();
 
-                // Position badge below the cumulative dot if close to bar label, otherwise above dot
                 const nearTop = Math.abs(pt.y - pt.barTopY) < 22;
                 const badgeY = nearTop ? Math.min(padTop + plotH - 12, pt.y + 15) : Math.max(padTop + 10, pt.y - 14);
                 const labelTxt = `ت:${pt.val.toFixed(1)}%`;
