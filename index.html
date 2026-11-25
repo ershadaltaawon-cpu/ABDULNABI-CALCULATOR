@@ -1471,7 +1471,8 @@
         return semKey === "sem2" || semKey === "sem4" || semKey === "sem6";
     }
 
-    // Collects all failed (< 50) courses from Semester 1 to Semester 6
+    // Collects ONLY currently unpassed (< 50) courses from Semester 1 to Semester 6;
+    // any course that passed (>= 50) in resit is excluded from appearing in resit again.
     function getAllFailedCoursesSem1ToSem6() {
         const failedList = [];
 
@@ -1482,8 +1483,7 @@
                 if (c.isMovedOut) return;
                 const baseGrade = state.grades[sKey][c.code];
                 const effGrade = getEffectiveCourseGrade(sKey, c.code);
-                if ((baseGrade !== undefined && !isNaN(baseGrade) && baseGrade < 50) ||
-                    (effGrade !== undefined && !isNaN(effGrade) && effGrade < 50)) {
+                if (effGrade !== undefined && !isNaN(effGrade) && effGrade < 50) {
                     failedList.push({
                         semKey: sKey,
                         semLabel: semLabels[sKey],
