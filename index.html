@@ -182,7 +182,7 @@
         }
 
         .thanks-centered-card {
-            max-width: 560px;
+            max-width: 660px;
             margin: 12px auto 0;
             text-align: center;
             background: #ffffff;
@@ -196,6 +196,17 @@
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+
+        .nowrap-line {
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        @media (max-width: 560px) {
+            .nowrap-line {
+                white-space: normal;
+            }
         }
 
         .group-clarification-box {
@@ -823,7 +834,7 @@
                         <div class="credit-card">
                             <div class="credit-role"><i class="fa-solid fa-user-check"></i> المتابعة</div>
                             <div class="credit-names">
-                                أ. عادل أحمد جاسم -رئيس مكتب الإرشاد الأكاديمي والمهني
+                                أ. عادل أحمد جاسم — رئيس مكتب الإرشاد الأكاديمي والمهني
                             </div>
                         </div>
                         <div class="credit-card">
@@ -839,7 +850,7 @@
                     <div class="thanks-centered-card">
                         <div class="credit-role"><i class="fa-solid fa-hands-helping"></i> شكر خاص</div>
                         <div class="credit-names">
-                            أعضاء مكتب الإرشاد الأكاديمي والمهني: أ. محمد خليل ابراهيم و أ. السيد مجيد باقر عبدالله<br>
+                            <span class="nowrap-line">أعضاء مكتب الإرشاد الأكاديمي والمهني: أ. محمد خليل ابراهيم و أ. السيد مجيد باقر عبدالله</span><br>
                             قسم التسجيل: أ. محمد صالح محمد<br>
                             اختصاصي تكنولوجيا تعليم: أ. كاظم محمد مطر<br>
                             فني مختبر الحاسوب: أ. علي احمد الزيمور
