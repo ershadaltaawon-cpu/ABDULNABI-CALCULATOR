@@ -285,6 +285,11 @@
             margin-top: 0;
         }
 
+        .btn-resit {
+            background: linear-gradient(135deg, #b45309, #d97706);
+            box-shadow: 0 4px 12px rgba(180, 83, 9, 0.22);
+        }
+
         .btn-whatsapp {
             background: #25d366;
             box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
@@ -321,6 +326,25 @@
         .action-box.open {
             display: block;
             animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .resit-banner {
+            background: #fffbeb;
+            border: 1.5px solid #f59e0b;
+            color: #92400e;
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 14px;
+            font-size: 0.86rem;
+            font-weight: 700;
+            line-height: 1.65;
+        }
+
+        .resit-check {
+            width: 18px;
+            height: 18px;
+            accent-color: #d97706;
+            cursor: pointer;
         }
 
         .validation-banner {
@@ -401,6 +425,7 @@
         .badge-moved { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
         .badge-imp-tag { background: #0284c7; color: #ffffff; font-size: 0.65rem; margin-right: 4px; }
         .badge-extra-tag { background: #0f766e; color: #ffffff; font-size: 0.65rem; margin-right: 4px; }
+        .badge-resit-tag { background: #d97706; color: #ffffff; font-size: 0.65rem; margin-right: 4px; }
 
         .small-action-btn {
             background: #fee2e2;
@@ -499,7 +524,7 @@
         canvas#gpaChart {
             width: 100%;
             max-width: 740px;
-            height: 265px;
+            height: 300px;
             display: block;
             margin: 0 auto;
         }
@@ -750,6 +775,41 @@
             </button>
         </div>
 
+        <!-- Step Resit Between Semesters -->
+        <div id="stepResit" class="step-section">
+            <h2 id="resitHeading" style="margin-bottom: 10px; color: var(--primary); font-size: 1.15rem;">
+                <i class="fa-solid fa-rotate"></i> الدور الثاني
+            </h2>
+            <div class="resit-banner">
+                <i class="fa-solid fa-circle-info"></i>
+                تظهر مقررات الرسوب المتاحة أمامك؛ يمكنك تحديد المقررات التي ترغب في تقديمها في هذا الدور الثاني وإدخال درجتها الجديدة، أو ترك أي مقرر غير محدد لتقديمه في الدور الثاني في الفصول أو السنوات القادمة.
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>تقديم الدور الثاني</th>
+                            <th>الرمز</th>
+                            <th>اسم المقرر</th>
+                            <th>الفصل</th>
+                            <th>الساعات</th>
+                            <th>الدرجة السابقة</th>
+                            <th>درجة الدور الثاني (0-100)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resitTableBody"></tbody>
+                </table>
+            </div>
+
+            <button type="button" class="btn btn-resit" id="resitContinueBtn" onclick="continueAfterResit()">
+                حفظ الدور الثاني والمتابعة <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="backFromResit()">
+                <i class="fa-solid fa-arrow-right"></i> رجوع إلى الفصل
+            </button>
+        </div>
+
         <!-- Step 2: Semester Courses & Grades -->
         <div id="step2" class="step-section">
             <div class="sem-nav-bar">
@@ -860,7 +920,7 @@
                     </div>
                 </div>
                 <div class="chart-canvas-wrap">
-                    <canvas id="gpaChart" width="740" height="265"></canvas>
+                    <canvas id="gpaChart" width="740" height="300"></canvas>
                 </div>
             </div>
 
@@ -1211,13 +1271,11 @@
         literary: "المسار الأدبي"
     };
 
-    // Allowed improvement codes in Semester 2 per group
     const sem2AllowedImprovementCodes = {
         A: new Set(["فيز102", "حيا102", "قصد101"].map(normalizeArabicCode)),
         B: new Set(["وطن101", "أجا102", "أسر102", "كيم102"].map(normalizeArabicCode))
     };
 
-    // Exact improvement source semester per target semester
     const improvementAllowedSources = {
         sem2: ["sem1"],
         sem3: ["sem1"],
@@ -1225,6 +1283,8 @@
         sem5: ["sem3"],
         sem6: ["sem4"]
     };
+
+    const specialNationalImprovementCodes = new Set(["وطن201", "وطن301"].map(normalizeArabicCode));
 
     let state = {
         name: "",
@@ -1235,7 +1295,10 @@
         visitedSems: new Set(["sem1"]),
         grades: { sem1: {}, sem2: {}, sem3: {}, sem4: {}, sem5: {}, sem6: {} },
         improvements: [],
-        extraCourses: []
+        extraCourses: [],
+        resitSelections: {}, // key: `${semKey}_${code}` -> boolean
+        resitGrades: {},     // key: `${semKey}_${code}` -> number
+        resitContext: null   // { afterSem: "sem1".."sem6", nextAction: function, backAction: function }
     };
 
     let pendingReturnAction = null;
@@ -1316,7 +1379,7 @@
 
         courses.forEach(c => {
             if (c.isMovedOut) return;
-            const val = state.grades[semKey][c.code];
+            const val = getEffectiveCourseGrade(semKey, c.code);
             const inpEl = document.getElementById(`inp_${semKey}_${c.code}`);
             if (val === undefined || val === null || val === "" || isNaN(val)) {
                 missing.push(c);
@@ -1398,13 +1461,185 @@
         }
     });
 
+    // --- Resit (الدور الثاني) Between Semesters ---
+    function getFailedCoursesUpToSemester(maxSemKey) {
+        const maxIdx = semOrder.indexOf(maxSemKey);
+        const failedList = [];
+
+        for (let i = 0; i <= maxIdx; i++) {
+            const sKey = semOrder[i];
+            if (i >= 2 && !state.trackSelected) continue;
+            const courses = getEffectiveSemesterCourses(sKey);
+            courses.forEach(c => {
+                if (c.isMovedOut) return;
+                const baseGrade = state.grades[sKey][c.code];
+                const effGrade = getEffectiveCourseGrade(sKey, c.code);
+                // Eligible for resit if original grade < 50 (or currently < 50)
+                if ((baseGrade !== undefined && !isNaN(baseGrade) && baseGrade < 50) ||
+                    (effGrade !== undefined && !isNaN(effGrade) && effGrade < 50)) {
+                    failedList.push({
+                        semKey: sKey,
+                        semLabel: semLabels[sKey],
+                        code: c.code,
+                        name: c.name,
+                        credits: c.credits,
+                        origGrade: baseGrade,
+                        currentEffGrade: effGrade
+                    });
+                }
+            });
+        }
+        return failedList;
+    }
+
+    function getEffectiveCourseGrade(semKey, code) {
+        const key = `${semKey}_${code}`;
+        if (state.resitSelections[key] && state.resitGrades[key] !== undefined && !isNaN(state.resitGrades[key])) {
+            return state.resitGrades[key];
+        }
+        return state.grades[semKey][code];
+    }
+
+    function maybeProceedWithResit(afterSemKey, nextAction, backAction) {
+        const failed = getFailedCoursesUpToSemester(afterSemKey);
+        if (failed.length === 0) {
+            nextAction();
+            return;
+        }
+
+        state.resitContext = {
+            afterSem: afterSemKey,
+            nextAction,
+            backAction
+        };
+
+        document.getElementById('resitHeading').innerHTML =
+            `<i class="fa-solid fa-rotate"></i> الدور الثاني (بعد ${semLabels[afterSemKey]})`;
+
+        const tbody = document.getElementById('resitTableBody');
+        tbody.innerHTML = "";
+
+        failed.forEach(item => {
+            const key = `${item.semKey}_${item.code}`;
+            const isChecked = Boolean(state.resitSelections[key]);
+            const resitVal = state.resitGrades[key] !== undefined ? state.resitGrades[key] : "";
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="text-align: center;">
+                    <input type="checkbox" class="resit-check" ${isChecked ? "checked" : ""}
+                           onchange="toggleResitSelection('${item.semKey}', '${item.code}', this.checked)">
+                </td>
+                <td><strong>${item.code}</strong></td>
+                <td>${item.name}</td>
+                <td>${item.semLabel}</td>
+                <td>${item.credits}</td>
+                <td><span class="badge badge-fail">${item.origGrade}</span></td>
+                <td>
+                    <input type="number" id="resit_inp_${key}" class="grade-input" inputmode="decimal" min="0" max="100" step="0.5"
+                           value="${resitVal}" placeholder="0-100" ${isChecked ? "" : "disabled"}
+                           onkeydown="blockNegativeKey(event)"
+                           oninput="handleResitGradeInput('${item.semKey}', '${item.code}', this)">
+                    <div id="resit_err_${key}" class="error-msg">يجب أن لا تتجاوز العلامة 100</div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        showSection('stepResit');
+        updateDashboard();
+    }
+
+    function toggleResitSelection(semKey, code, checked) {
+        const key = `${semKey}_${code}`;
+        state.resitSelections[key] = checked;
+        const inp = document.getElementById(`resit_inp_${key}`);
+        if (inp) {
+            inp.disabled = !checked;
+            if (!checked) {
+                delete state.resitGrades[key];
+                inp.value = "";
+            } else {
+                inp.focus();
+            }
+        }
+        updateDashboard();
+    }
+
+    function handleResitGradeInput(semKey, code, inputEl) {
+        const key = `${semKey}_${code}`;
+        const errEl = document.getElementById(`resit_err_${key}`);
+        let raw = inputEl.value;
+
+        if (raw.includes('-')) {
+            raw = raw.replace(/-/g, '');
+            inputEl.value = raw;
+        }
+
+        if (raw === "") {
+            errEl.style.display = "none";
+            delete state.resitGrades[key];
+            updateDashboard();
+            return;
+        }
+
+        let num = parseFloat(raw);
+        if (isNaN(num) || num < 0) {
+            num = 0;
+            inputEl.value = "0";
+            errEl.style.display = "none";
+        } else if (num > 100) {
+            errEl.style.display = "block";
+            num = 100;
+            inputEl.value = "100";
+        } else {
+            errEl.style.display = "none";
+        }
+
+        state.resitGrades[key] = num;
+        updateDashboard();
+    }
+
+    function continueAfterResit() {
+        // Validate any checked resit course has a grade entered
+        if (state.resitContext) {
+            const failed = getFailedCoursesUpToSemester(state.resitContext.afterSem);
+            for (const item of failed) {
+                const key = `${item.semKey}_${item.code}`;
+                if (state.resitSelections[key]) {
+                    const g = state.resitGrades[key];
+                    if (g === undefined || g === null || g === "" || isNaN(g)) {
+                        alert(`يرجى إدخال درجة الدور الثاني للمقرر المحدد (${item.code} - ${item.name}) أو إلغاء تحديده.`);
+                        const inp = document.getElementById(`resit_inp_${key}`);
+                        if (inp) inp.focus();
+                        return;
+                    }
+                }
+            }
+            const nextFn = state.resitContext.nextAction;
+            state.resitContext = null;
+            nextFn();
+        }
+    }
+
+    function backFromResit() {
+        if (state.resitContext && typeof state.resitContext.backAction === 'function') {
+            const backFn = state.resitContext.backAction;
+            state.resitContext = null;
+            backFn();
+        } else {
+            showSection('step2');
+            renderSemesterView();
+        }
+    }
+
     function collectFailedCourses() {
         const failed = [];
         semOrder.forEach(sKey => {
             const courses = getEffectiveSemesterCourses(sKey);
             courses.forEach(c => {
                 if (c.isMovedOut) return;
-                const g = state.grades[sKey][c.code];
+                const g = getEffectiveCourseGrade(sKey, c.code);
                 if (g !== undefined && !isNaN(g) && g < 50) {
                     failed.push({
                         semLabel: semLabels[sKey],
@@ -1451,10 +1686,17 @@
 
         if (targetIdx > currentIdx) {
             if (!validateSemesterComplete(state.currentSem)) return;
-            state.currentSem = semKey;
-            state.visitedSems.add(semKey);
-            showSection('step2');
-            renderSemesterView();
+            const prevSem = state.currentSem;
+            const goTarget = () => {
+                state.currentSem = semKey;
+                state.visitedSems.add(semKey);
+                showSection('step2');
+                renderSemesterView();
+            };
+            maybeProceedWithResit(prevSem, goTarget, () => {
+                showSection('step2');
+                renderSemesterView();
+            });
         } else if (targetIdx < currentIdx) {
             requestReturnConfirmation(semKey, false);
         }
@@ -1464,14 +1706,24 @@
         if (!validateSemesterComplete(state.currentSem)) return;
 
         const idx = semOrder.indexOf(state.currentSem);
-        if (state.currentSem === "sem1") {
+        const curSem = state.currentSem;
+
+        if (curSem === "sem1") {
             navigateToSemester("sem2");
-        } else if (state.currentSem === "sem2") {
-            showSection('stepTrackSelection');
+        } else if (curSem === "sem2") {
+            const goTrack = () => showSection('stepTrackSelection');
+            maybeProceedWithResit("sem2", goTrack, () => {
+                showSection('step2');
+                renderSemesterView();
+            });
         } else if (idx < semOrder.length - 1) {
             navigateToSemester(semOrder[idx + 1]);
         } else {
-            attemptOpenFinalReport();
+            const goReport = () => attemptOpenFinalReport();
+            maybeProceedWithResit("sem6", goReport, () => {
+                showSection('step2');
+                renderSemesterView();
+            });
         }
     }
 
@@ -1631,7 +1883,9 @@
             if (course.isMovedOut) tr.className = "row-moved";
             if (course.isImprovementHere) tr.className = "row-improved";
 
-            const savedVal = state.grades[semKey][course.code] !== undefined ? state.grades[semKey][course.code] : "";
+            const savedVal = getEffectiveCourseGrade(semKey, course.code);
+            const displayVal = savedVal !== undefined ? savedVal : "";
+            const isResitApplied = Boolean(state.resitSelections[`${semKey}_${course.code}`] && state.resitGrades[`${semKey}_${course.code}`] !== undefined);
             const inputId = `inp_${semKey}_${course.code}`;
             const errId = `err_${semKey}_${course.code}`;
             const badgeId = `bdg_${semKey}_${course.code}`;
@@ -1644,6 +1898,9 @@
                 nameHtml += ` <span class="badge badge-extra-tag">مقرر إضافي</span>`;
                 nameHtml += `<br><button type="button" class="small-action-btn" onclick="removeExtraCourse('${course.code}', '${semKey}')"><i class="fa-solid fa-trash"></i> حذف المقرر الإضافي</button>`;
             }
+            if (isResitApplied) {
+                nameHtml += ` <span class="badge badge-resit-tag">دور ثاني</span>`;
+            }
 
             let gradeCellHtml = "";
             let statusCellHtml = "";
@@ -1654,12 +1911,12 @@
             } else {
                 gradeCellHtml = `
                     <input type="number" id="${inputId}" class="grade-input" inputmode="decimal" min="0" max="100" step="0.5"
-                           value="${savedVal}" placeholder="0-100"
+                           value="${displayVal}" placeholder="0-100"
                            onkeydown="blockNegativeKey(event)"
                            oninput="handleGradeInput('${semKey}', '${course.code}', this)">
                     <div id="${errId}" class="error-msg">يجب أن لا تتجاوز العلامة 100</div>
                 `;
-                statusCellHtml = getRatingBadgeHtml(savedVal);
+                statusCellHtml = getRatingBadgeHtml(displayVal);
             }
 
             tr.innerHTML = `
@@ -1695,6 +1952,8 @@
         if (raw === "") {
             errEl.style.display = "none";
             delete state.grades[semKey][code];
+            delete state.resitGrades[`${semKey}_${code}`];
+            delete state.resitSelections[`${semKey}_${code}`];
             badgeEl.innerHTML = getRatingBadgeHtml("");
             updateDashboard();
             return;
@@ -1714,6 +1973,9 @@
         }
 
         state.grades[semKey][code] = num;
+        if (state.resitSelections[`${semKey}_${code}`] && state.resitGrades[`${semKey}_${code}`] !== undefined) {
+            state.resitGrades[`${semKey}_${code}`] = num;
+        }
         badgeEl.innerHTML = getRatingBadgeHtml(num);
         updateDashboard();
     }
@@ -1752,7 +2014,14 @@
             }
         }
 
-        const allowedSourceSems = improvementAllowedSources[state.currentSem] || [];
+        const allowedSourceSems = new Set(improvementAllowedSources[state.currentSem] || []);
+        // Exception: وطن201 and وطن301 can be submitted for improvement in sem1 and sem2 in specialized tracks
+        const allowSpecialNationalInSem1Sem2 = state.trackSelected && (state.currentSem === "sem1" || state.currentSem === "sem2");
+        if (allowSpecialNationalInSem1Sem2) {
+            allowedSourceSems.add("sem1");
+            allowedSourceSems.add("sem2");
+        }
+
         const selectEl = document.getElementById('improveCourseSelect');
         selectEl.innerHTML = "";
 
@@ -1762,13 +2031,20 @@
             if (prevIdx >= 2 && !state.trackSelected) return;
             const prevCourses = getBaseCourses(prevSem);
             prevCourses.forEach(c => {
-                if (state.currentSem === "sem2") {
+                const normCode = normalizeArabicCode(c.code);
+
+                if (state.currentSem === "sem2" && prevSem === "sem1") {
                     const groupSet = sem2AllowedImprovementCodes[state.group];
-                    if (!groupSet || !groupSet.has(normalizeArabicCode(c.code))) return;
+                    const isAllowedSpecial = allowSpecialNationalInSem1Sem2 && specialNationalImprovementCodes.has(normCode);
+                    if ((!groupSet || !groupSet.has(normCode)) && !isAllowedSpecial) return;
+                }
+
+                if (allowSpecialNationalInSem1Sem2 && (state.currentSem === "sem1" || (state.currentSem === "sem2" && prevSem === "sem2"))) {
+                    if (!specialNationalImprovementCodes.has(normCode)) return;
                 }
 
                 const alreadyMoved = state.improvements.some(imp => imp.fromSem === prevSem && imp.code === c.code);
-                const prevGrade = state.grades[prevSem][c.code];
+                const prevGrade = getEffectiveCourseGrade(prevSem, c.code);
                 const isEligibleGrade = prevGrade !== undefined && !isNaN(prevGrade) && prevGrade >= 50 && prevGrade < 100;
                 if (!alreadyMoved && isEligibleGrade) {
                     eligible.push({
@@ -1785,7 +2061,7 @@
         eligible.sort((a, b) => normalizeArabicCode(a.code).localeCompare(normalizeArabicCode(b.code), 'ar'));
 
         if (eligible.length === 0) {
-            alert("لا توجد مقررات متاحة للتحسين في هذا الفصل وفق الضوابط والمجموعة المحددة.");
+            alert("لا توجد مقررات متاحة للتحسين في هذا الفصل وفق الضوابط المحددة.");
             return;
         }
 
@@ -1804,8 +2080,10 @@
         if (!selectEl.value) return;
         const chosen = JSON.parse(selectEl.value);
 
-        const oldGrade = state.grades[chosen.fromSem][chosen.code];
+        const oldGrade = getEffectiveCourseGrade(chosen.fromSem, chosen.code);
         delete state.grades[chosen.fromSem][chosen.code];
+        delete state.resitGrades[`${chosen.fromSem}_${chosen.code}`];
+        delete state.resitSelections[`${chosen.fromSem}_${chosen.code}`];
 
         state.improvements.push({
             fromSem: chosen.fromSem,
@@ -1897,7 +2175,7 @@
 
         courses.forEach(c => {
             if (c.isMovedOut) return;
-            const g = state.grades[semKey][c.code];
+            const g = getEffectiveCourseGrade(semKey, c.code);
             if (g !== undefined && !isNaN(g)) {
                 activeCredits += c.credits;
                 weightedSum += g * c.credits;
@@ -1975,9 +2253,9 @@
         const height = canvas.height;
         ctx.clearRect(0, 0, width, height);
 
-        const padLeft = 48;
+        const padLeft = 50;
         const padRight = 24;
-        const padTop = 36;
+        const padTop = 34;
         const padBottom = 42;
         const plotW = width - padLeft - padRight;
         const plotH = height - padTop - padBottom;
@@ -1999,7 +2277,6 @@
             ctx.fillText(`${val}%`, padLeft - 7, y);
         });
 
-        // Compute both semester GPA and cumulative GPA up to each semester
         let runningWeighted = 0;
         let runningCredits = 0;
 
@@ -2021,9 +2298,8 @@
         });
 
         const barSlotW = plotW / semStats.length;
-        const barW = Math.min(44, barSlotW * 0.48);
+        const barW = Math.min(46, barSlotW * 0.48);
 
-        // 1. Draw Semester GPA bars
         const cumPoints = [];
         semStats.forEach((st, idx) => {
             const centerX = padLeft + barSlotW * idx + barSlotW / 2;
@@ -2040,24 +2316,24 @@
             ctx.roundRect(centerX - barW / 2, y, barW, Math.max(barH, 2), [6, 6, 0, 0]);
             ctx.fill();
 
-            // Semester GPA label
+            // Semester GPA label cleanly above bar
             ctx.fillStyle = '#1b4332';
             ctx.font = 'bold 10.5px Cairo, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(st.active ? `${st.semPct.toFixed(1)}%` : '-', centerX, y - 9);
+            ctx.fillText(st.active ? `ف:${st.semPct.toFixed(1)}%` : '-', centerX, Math.max(padTop - 12, y - 10));
 
-            // Semester X-axis label
+            // X-axis semester label
             ctx.fillStyle = '#374151';
             ctx.font = 'bold 11px Cairo, sans-serif';
             ctx.fillText(st.label, centerX, padTop + plotH + 16);
 
             if (st.active && st.cumPct !== null) {
                 const cumY = padTop + plotH - (st.cumPct / 100) * plotH;
-                cumPoints.push({ x: centerX, y: cumY, val: st.cumPct });
+                cumPoints.push({ x: centerX, y: cumY, val: st.cumPct, barTopY: y });
             }
         });
 
-        // 2. Draw Cumulative GPA connected line & markers
+        // Draw Cumulative GPA line & pill badges separated from bar labels
         if (cumPoints.length > 0) {
             ctx.save();
             ctx.strokeStyle = '#0369a1';
@@ -2078,11 +2354,26 @@
                 ctx.fill();
                 ctx.stroke();
 
-                ctx.fillStyle = '#0369a1';
+                // Position badge below the cumulative dot if close to bar label, otherwise above dot
+                const nearTop = Math.abs(pt.y - pt.barTopY) < 22;
+                const badgeY = nearTop ? Math.min(padTop + plotH - 12, pt.y + 15) : Math.max(padTop + 10, pt.y - 14);
+                const labelTxt = `ت:${pt.val.toFixed(1)}%`;
+
                 ctx.font = 'bold 10px Cairo, sans-serif';
+                const textW = ctx.measureText(labelTxt).width + 8;
+
+                ctx.fillStyle = '#e0f2fe';
+                ctx.strokeStyle = '#0284c7';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.roundRect(pt.x - textW / 2, badgeY - 8, textW, 16, 5);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#0369a1';
                 ctx.textAlign = 'center';
-                const labelY = pt.y > 24 ? pt.y - 11 : pt.y + 13;
-                ctx.fillText(`ت:${pt.val.toFixed(1)}%`, pt.x, labelY);
+                ctx.textBaseline = 'middle';
+                ctx.fillText(labelTxt, pt.x, badgeY);
             });
             ctx.restore();
         }
@@ -2162,7 +2453,10 @@
             visitedSems: new Set(["sem1"]),
             grades: { sem1: {}, sem2: {}, sem3: {}, sem4: {}, sem5: {}, sem6: {} },
             improvements: [],
-            extraCourses: []
+            extraCourses: [],
+            resitSelections: {},
+            resitGrades: {},
+            resitContext: null
         };
         document.getElementById('studentName').value = "";
         document.getElementById('liveDashboard').style.display = "none";
