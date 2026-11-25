@@ -782,7 +782,7 @@
             </h2>
             <div class="resit-banner" id="resitBannerDesc">
                 <i class="fa-solid fa-circle-info"></i>
-                يُتاح الدور الثاني في نهاية السنة الدراسية لمن لديه مقررات رسوب؛ يمكنك تحديد المقررات التي ترغب في تقديمها في هذا الدور الثاني وإدخال درجتها الجديدة، أو ترك أي مقرر غير محدد لتقديمه في الدور الثاني في السنوات الأخرى.
+                يُطرح الدور الثاني مع نهاية كل سنة دراسية لمن عليه رسوب في أي مقرر من الفصل الأول إلى الفصل السادس؛ يمكنك تحديد المقررات التي ترغب في تقديمها في هذا الدور الثاني وإدخال درجتها الجديدة، أو ترك أي مقرر غير محدد لتقديمه في السنوات الأخرى.
             </div>
 
             <div class="table-responsive">
@@ -1265,14 +1265,9 @@
         sem6: "الفصل السادس"
     };
     const academicYearLabels = {
-        sem2: "نهاية السنة الدراسية الأولى (الفصل الأول والثاني)",
-        sem4: "نهاية السنة الدراسية الثانية (الفصل الثالث والرابع)",
-        sem6: "نهاية السنة الدراسية الثالثة (الفصل الخامس والسادس)"
-    };
-    const resitSemestersByYear = {
-        sem2: ["sem1", "sem2"],
-        sem4: ["sem3", "sem4"],
-        sem6: ["sem5", "sem6"]
+        sem2: "نهاية السنة الدراسية الأولى",
+        sem4: "نهاية السنة الدراسية الثانية",
+        sem6: "نهاية السنة الدراسية الثالثة"
     };
     const trackLabels = {
         chem_bio: "علمي (كيمياء - أحياء)",
@@ -1471,17 +1466,16 @@
         }
     });
 
-    // --- Resit (الدور الثاني) At End of Each Academic Year (sem2: sem1+sem2, sem4: sem3+sem4, sem6: sem5+sem6) ---
+    // --- Resit (الدور الثاني) At End of Each Academic Year across Semesters 1..6 ---
     function isEndOfAcademicYear(semKey) {
-        return Boolean(resitSemestersByYear[semKey]);
+        return semKey === "sem2" || semKey === "sem4" || semKey === "sem6";
     }
 
-    function getFailedCoursesInAcademicYear(yearEndSemKey) {
-        const targetSems = resitSemestersByYear[yearEndSemKey] || [];
+    // Collects all failed (< 50) courses from Semester 1 to Semester 6
+    function getAllFailedCoursesSem1ToSem6() {
         const failedList = [];
 
-        targetSems.forEach(sKey => {
-            const idx = semOrder.indexOf(sKey);
+        semOrder.forEach((sKey, idx) => {
             if (idx >= 2 && !state.trackSelected) return;
             const courses = getEffectiveSemesterCourses(sKey);
             courses.forEach(c => {
@@ -1519,7 +1513,7 @@
             return;
         }
 
-        const failed = getFailedCoursesInAcademicYear(afterSemKey);
+        const failed = getAllFailedCoursesSem1ToSem6();
         if (failed.length === 0) {
             nextAction();
             return;
@@ -1620,7 +1614,7 @@
 
     function continueAfterResit() {
         if (state.resitContext) {
-            const failed = getFailedCoursesInAcademicYear(state.resitContext.afterSem);
+            const failed = getAllFailedCoursesSem1ToSem6();
             for (const item of failed) {
                 const key = `${item.semKey}_${item.code}`;
                 if (state.resitSelections[key]) {
