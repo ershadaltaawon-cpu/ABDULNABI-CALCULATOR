@@ -116,6 +116,82 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Intro Screen Styling */
+        .intro-box {
+            background: #f8fafc;
+            border: 1.5px solid #d8f3dc;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+            line-height: 1.75;
+        }
+
+        .intro-block {
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #cbd5e1;
+        }
+
+        .intro-block:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .intro-block-title {
+            color: var(--primary);
+            font-size: 0.98rem;
+            font-weight: 900;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .intro-block p {
+            font-size: 0.88rem;
+            color: #374151;
+        }
+
+        .credits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .credit-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .credit-role {
+            font-size: 0.76rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin-bottom: 4px;
+        }
+
+        .credit-names {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.65;
+        }
+
+        .group-clarification-box {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            font-size: 0.82rem;
+            color: #14532d;
+            line-height: 1.75;
+        }
+
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -695,6 +771,60 @@
     </header>
 
     <div class="content">
+        <!-- Step Intro: Before Opening Calculator -->
+        <div id="stepIntro" class="step-section active">
+            <div class="intro-box">
+                <div class="intro-block">
+                    <div class="intro-block-title">
+                        <i class="fa-solid fa-calculator"></i> ما هي حاسبة التعاون؟
+                    </div>
+                    <p>
+                        حاسبة التعاون للمعدل الفصلي والتراكمي هي أداة إلكترونية تفاعلية صُممت لطلبة مدرسة التعاون الثانوية للبنين لمساعدتهم على حساب معدلاتهم الفصلية والتراكمية، ومعرفة ساعاتهم المجتازة وغير المجتازة والمتبقية للتخرج، ومحاكاة التحسين والدور الثاني وفق الأنظمة المعتمدة.
+                    </p>
+                </div>
+
+                <div class="intro-block">
+                    <div class="intro-block-title">
+                        <i class="fa-solid fa-bullseye"></i> الهدف
+                    </div>
+                    <p>
+                        تمكين الطالب وولي أمره والمرشد الأكاديمي من متابعة الأداء الدراسي بدقة ووضوح عبر الفصول الدراسية الستة، ودعم اتخاذ القرارات الأكاديمية والمهنية المبكرة وتخطيط المسار الدراسي نحو التخرج.
+                    </p>
+                </div>
+
+                <div class="intro-block">
+                    <div class="intro-block-title">
+                        <i class="fa-solid fa-award"></i> الإشراف والمتابعة والشكر الخاص
+                    </div>
+                    <div class="credits-grid">
+                        <div class="credit-card">
+                            <div class="credit-role"><i class="fa-solid fa-user-tie"></i> إشراف مدير المدرسة</div>
+                            <div class="credit-names">أ. محمود الإسكافي</div>
+                        </div>
+                        <div class="credit-card">
+                            <div class="credit-role"><i class="fa-solid fa-user-check"></i> المتابعة</div>
+                            <div class="credit-names">
+                                مدير المدرسة المساعد أ. عادل أحمد<br>
+                                مدير المدرسة المساعد أ. وليد القلاف
+                            </div>
+                        </div>
+                        <div class="credit-card">
+                            <div class="credit-role"><i class="fa-solid fa-hands-helping"></i> شكر خاص للأقسام المتعاونة</div>
+                            <div class="credit-names">
+                                قسم التسجيل: أ. محمد صالح<br>
+                                اختصاصي تكنولوجيا تعليم: أ. كاظم مطر<br>
+                                فني مختبر الحاسوب: أ. علي الزيمور
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn" onclick="openCalculatorFromIntro()">
+                الدخول إلى الحاسبة <i class="fa-solid fa-arrow-left"></i>
+            </button>
+        </div>
+
         <!-- Live Dashboard -->
         <div id="liveDashboard" class="dashboard-grid" style="display: none;">
             <div class="dash-card">
@@ -730,7 +860,7 @@
         </div>
 
         <!-- Step 1: Student Info -->
-        <div id="step1" class="step-section active">
+        <div id="step1" class="step-section">
             <h2 style="margin-bottom: 12px; color: var(--primary); font-size: 1.1rem;">
                 <i class="fa-solid fa-user-graduate"></i> بيانات الطالب الأساسية
             </h2>
@@ -744,9 +874,17 @@
                     <option value="A">المجموعة أ</option>
                     <option value="B">المجموعة ب</option>
                 </select>
+                <div class="group-clarification-box">
+                    <strong>توضيح مجموعات توحيد المسارات:</strong><br>
+                    • <strong>المجموعة أ:</strong> الطلبة الذين يدرسون (فيز102، حيا102، قصد101).<br>
+                    • <strong>المجموعة ب:</strong> الطلبة الذين يدرسون (كيم102، اجا102، اسر102، وطن101).
+                </div>
             </div>
             <button type="button" class="btn" onclick="startUnifiedSemesters()">
                 البدء بإدخال علامات الفصل الأول <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="showSection('stepIntro')">
+                <i class="fa-solid fa-arrow-right"></i> العودة إلى المقدمة
             </button>
         </div>
 
@@ -1353,6 +1491,11 @@
         document.getElementById(sectionId).classList.add('active');
     }
 
+    function openCalculatorFromIntro() {
+        document.getElementById('liveDashboard').style.display = "none";
+        showSection('step1');
+    }
+
     function startUnifiedSemesters() {
         const nameInput = document.getElementById('studentName').value.trim();
         if (!nameInput) {
@@ -1466,13 +1609,10 @@
         }
     });
 
-    // --- Resit (الدور الثاني) At End of Each Academic Year across Semesters 1..6 ---
     function isEndOfAcademicYear(semKey) {
         return semKey === "sem2" || semKey === "sem4" || semKey === "sem6";
     }
 
-    // Collects ONLY currently unpassed (< 50) courses from Semester 1 to Semester 6;
-    // any course that passed (>= 50) in resit is excluded from appearing in resit again.
     function getAllFailedCoursesSem1ToSem6() {
         const failedList = [];
 
@@ -2480,7 +2620,7 @@
         };
         document.getElementById('studentName').value = "";
         document.getElementById('liveDashboard').style.display = "none";
-        showSection('step1');
+        showSection('stepIntro');
     }
 </script>
 
