@@ -220,6 +220,72 @@
             line-height: 1.75;
         }
 
+        /* Track Courses Explorer Panel */
+        .track-explorer-box {
+            background: #f8fafc;
+            border: 1.5px solid #bae6fd;
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+            margin-bottom: 14px;
+        }
+
+        .track-explorer-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .track-explorer-title {
+            font-size: 0.95rem;
+            font-weight: 900;
+            color: #0369a1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .track-sem-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .track-sem-tab {
+            padding: 5px 11px;
+            border-radius: 16px;
+            border: 1.5px solid #cbd5e1;
+            background: #ffffff;
+            color: var(--text-dark);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .track-sem-tab.active {
+            background: #0369a1;
+            color: #ffffff;
+            border-color: #0369a1;
+        }
+
+        .track-summary-strip {
+            background: #e0f2fe;
+            color: #0c4a6e;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -372,6 +438,14 @@
             box-shadow: none;
         }
 
+        .btn-outline-info {
+            background: #ffffff;
+            color: #0369a1;
+            border: 1.5px solid #0284c7;
+            box-shadow: none;
+            margin-top: 0;
+        }
+
         .btn-danger {
             background: linear-gradient(135deg, #b91c1c, #dc2626);
             box-shadow: 0 4px 12px rgba(185, 28, 28, 0.22);
@@ -451,10 +525,38 @@
             color: #92400e;
             padding: 12px 14px;
             border-radius: 12px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             font-size: 0.86rem;
             font-weight: 700;
             line-height: 1.65;
+        }
+
+        .resit-cap-tracker {
+            background: #f0f9ff;
+            border: 1.5px solid #7dd3fc;
+            color: #0369a1;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            font-size: 0.86rem;
+            font-weight: 800;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .resit-cap-warning {
+            background: #fef2f2;
+            border: 1.5px solid #fca5a5;
+            color: var(--danger);
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            display: none;
         }
 
         .resit-ineligible-banner {
@@ -963,13 +1065,20 @@
             </p>
             <div class="form-group">
                 <label for="studentTrack">المسار التخصصي:</label>
-                <select id="studentTrack">
+                <select id="studentTrack" onchange="syncPreviewTrackFromSelection()">
                     <option value="chem_bio">المسار العلمي (كيمياء - أحياء)</option>
                     <option value="phys_math">المسار العلمي (فيزياء - رياضيات)</option>
                     <option value="commercial">المسار التجاري</option>
                     <option value="literary">المسار الأدبي (العلوم الإنسانية)</option>
                 </select>
             </div>
+
+            <button type="button" class="btn btn-outline-info" onclick="toggleTrackExplorer('trackSelectionExplorer')">
+                <i class="fa-solid fa-book-open"></i> استعراض مقررات المسارات التخصصية بالساعات
+            </button>
+
+            <div id="trackSelectionExplorer" class="track-explorer-box" style="display: none;"></div>
+
             <button type="button" class="btn" onclick="proceedToSpecializedSemesters()">
                 الانتقال إلى الفصل الثالث <i class="fa-solid fa-arrow-left"></i>
             </button>
@@ -991,6 +1100,9 @@
                     <i class="fa-solid fa-circle-info"></i>
                     يُطرح الدور الثاني مع نهاية كل سنة دراسية لمن عليه رسوب واستوفى شرط الساعات المعتمدة؛ يمكنك تحديد المقررات التي ترغب في تقديمها في هذا الدور الثاني وإدخال درجتها الجديدة، أو ترك أي مقرر غير محدد لتقديمه في السنوات الأخرى.
                 </div>
+
+                <div class="resit-cap-tracker" id="resitCapTracker"></div>
+                <div class="resit-cap-warning" id="resitCapWarning"></div>
 
                 <div class="table-responsive">
                     <table>
@@ -1094,6 +1206,12 @@
                     </div>
                 </div>
             </div>
+
+            <button type="button" class="btn btn-outline-info" style="margin-bottom: 12px;" onclick="toggleTrackExplorer('semExplorer')">
+                <i class="fa-solid fa-book-open"></i> استعراض مقررات المسارات التخصصية بالساعات
+            </button>
+
+            <div id="semExplorer" class="track-explorer-box" style="display: none;"></div>
 
             <div id="validationBanner" class="validation-banner"></div>
 
@@ -1202,6 +1320,7 @@
 
 <script>
     const TOTAL_PLAN_CREDITS = 156;
+    const UNIFIED_PLAN_CREDITS = 52;
     const SEM2_MIN_SEM1_CREDITS_FOR_IMPROVEMENT = 24;
     const YEAR1_MIN_PASSED_FOR_YEAR2 = 36;
     const YEAR2_MIN_PASSED_FOR_YEAR3 = 80;
@@ -1468,6 +1587,7 @@
     }
 
     const semOrder = ["sem1", "sem2", "sem3", "sem4", "sem5", "sem6"];
+    const specSemOrder = ["sem3", "sem4", "sem5", "sem6"];
     const semShortLabels = {
         sem1: "ف1",
         sem2: "ف2",
@@ -1493,18 +1613,21 @@
     const resitEligibilityRules = {
         sem2: {
             minPassedCredits: 24,
+            maxResitCredits: 12,
             sems: ["sem1", "sem2"],
             yearLabel: "السنة الأولى",
             scopeText: "من الفصلين (الأول والثاني)"
         },
         sem4: {
             minPassedCredits: 68,
+            maxResitCredits: 12,
             sems: ["sem1", "sem2", "sem3", "sem4"],
             yearLabel: "السنة الثانية",
             scopeText: "من الفصول الأربعة (الأول حتى الرابع)"
         },
         sem6: {
             minPassedCredits: 132,
+            maxResitCredits: 20,
             sems: ["sem1", "sem2", "sem3", "sem4", "sem5", "sem6"],
             yearLabel: "السنة الثالثة",
             scopeText: "من الفصول الستة (الأول حتى السادس)"
@@ -1548,7 +1671,136 @@
         resitContext: null
     };
 
+    let explorerState = {
+        track: "chem_bio",
+        sem: "sem3",
+        openTargetId: null
+    };
+
     let pendingReturnAction = null;
+
+    // --- Track Courses Explorer ---
+    function syncPreviewTrackFromSelection() {
+        const sel = document.getElementById('studentTrack');
+        if (sel) {
+            explorerState.track = sel.value;
+            if (explorerState.openTargetId === 'trackSelectionExplorer') {
+                renderTrackExplorerContent('trackSelectionExplorer');
+            }
+        }
+    }
+
+    function toggleTrackExplorer(targetId) {
+        const box = document.getElementById(targetId);
+        if (!box) return;
+
+        if (box.style.display === "block" && explorerState.openTargetId === targetId) {
+            box.style.display = "none";
+            explorerState.openTargetId = null;
+            return;
+        }
+
+        document.querySelectorAll('.track-explorer-box').forEach(el => {
+            el.style.display = "none";
+        });
+
+        if (targetId === 'trackSelectionExplorer') {
+            const sel = document.getElementById('studentTrack');
+            if (sel) explorerState.track = sel.value;
+        } else if (state.trackSelected) {
+            explorerState.track = state.track;
+        }
+
+        if (specSemOrder.includes(state.currentSem)) {
+            explorerState.sem = state.currentSem;
+        }
+
+        explorerState.openTargetId = targetId;
+        box.style.display = "block";
+        renderTrackExplorerContent(targetId);
+    }
+
+    function selectExplorerTrack(trackKey, targetId) {
+        explorerState.track = trackKey;
+        const sel = document.getElementById('studentTrack');
+        if (sel && targetId === 'trackSelectionExplorer') {
+            sel.value = trackKey;
+        }
+        renderTrackExplorerContent(targetId);
+    }
+
+    function selectExplorerSem(semKey, targetId) {
+        explorerState.sem = semKey;
+        renderTrackExplorerContent(targetId);
+    }
+
+    function renderTrackExplorerContent(targetId) {
+        const box = document.getElementById(targetId);
+        if (!box) return;
+
+        const tKey = explorerState.track;
+        const sKey = explorerState.sem;
+        const trackObj = coursesData[tKey] || coursesData.chem_bio;
+        const semCourses = trackObj[sKey] || [];
+
+        const semHours = semCourses.reduce((acc, c) => acc + c.credits, 0);
+        const totalTrackHours = specSemOrder.reduce((sum, sk) => {
+            return sum + (trackObj[sk] || []).reduce((a, c) => a + c.credits, 0);
+        }, 0);
+        const grandTotalHours = UNIFIED_PLAN_CREDITS + totalTrackHours;
+
+        let trackBtnsHtml = "";
+        Object.keys(trackLabels).forEach(k => {
+            const isActive = k === tKey;
+            trackBtnsHtml += `<button type="button" class="sem-pill ${isActive ? 'active' : ''}" onclick="selectExplorerTrack('${k}', '${targetId}')">${trackLabels[k]}</button>`;
+        });
+
+        let semTabsHtml = "";
+        specSemOrder.forEach(sk => {
+            const isActive = sk === sKey;
+            const hrs = (trackObj[sk] || []).reduce((a, c) => a + c.credits, 0);
+            semTabsHtml += `<button type="button" class="track-sem-tab ${isActive ? 'active' : ''}" onclick="selectExplorerSem('${sk}', '${targetId}')">${semLabels[sk]} (${hrs} س)</button>`;
+        });
+
+        let rowsHtml = "";
+        semCourses.forEach(c => {
+            rowsHtml += `
+                <tr>
+                    <td><strong>${c.code}</strong></td>
+                    <td>${c.name}</td>
+                    <td><strong>${c.credits}</strong> ساعات</td>
+                </tr>
+            `;
+        });
+
+        box.innerHTML = `
+            <div class="track-explorer-header">
+                <div class="track-explorer-title">
+                    <i class="fa-solid fa-graduation-cap"></i> استعراض مقررات المسارات التخصصية بالساعات
+                </div>
+                <button type="button" class="small-action-btn" style="margin-top:0;" onclick="toggleTrackExplorer('${targetId}')">إغلاق</button>
+            </div>
+            <div class="sem-pills" style="margin-bottom: 10px;">${trackBtnsHtml}</div>
+            <div class="track-sem-tabs">${semTabsHtml}</div>
+            <div class="track-summary-strip">
+                <span>المسار: <strong>${trackLabels[tKey]}</strong></span>
+                <span>مجموع ساعات ${semLabels[sKey]}: <strong>${semHours}</strong> ساعة</span>
+                <span>إجمالي المسار (ف3 - ف6): <strong>${totalTrackHours}</strong> ساعة + <strong>${UNIFIED_PLAN_CREDITS}</strong> توحيد المسارات = <strong>${grandTotalHours}</strong> ساعة</span>
+            </div>
+            <div class="table-responsive" style="margin-bottom: 0;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الرمز</th>
+                            <th>اسم المقرر</th>
+                            <th>الساعات المعتمدة</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </div>
+        `;
+    }
 
     // --- User Counter Logic ---
     async function initUserCounter() {
@@ -1808,6 +2060,43 @@
         return state.grades[semKey][code];
     }
 
+    function getSelectedResitCreditsForYear(afterSemKey) {
+        const failed = getAllFailedCoursesSem1ToSem6();
+        let total = 0;
+        failed.forEach(item => {
+            const key = `${item.semKey}_${item.code}`;
+            if (state.resitSelections[key]) {
+                total += item.credits;
+            }
+        });
+        return total;
+    }
+
+    function updateResitCapUI(afterSemKey) {
+        const rule = resitEligibilityRules[afterSemKey];
+        if (!rule) return;
+
+        const selectedCr = getSelectedResitCreditsForYear(afterSemKey);
+        const cap = rule.maxResitCredits;
+        const trackerEl = document.getElementById('resitCapTracker');
+        const warnEl = document.getElementById('resitCapWarning');
+
+        if (trackerEl) {
+            trackerEl.innerHTML =
+                `<span><i class="fa-solid fa-layer-group"></i> الساعات المحددة للدور الثاني (${rule.yearLabel}): <strong>${selectedCr}</strong> / <strong>${cap}</strong> ساعة</span>` +
+                `<span>المتبقي للتقديم: <strong>${Math.max(0, cap - selectedCr)}</strong> ساعة</span>`;
+        }
+
+        if (warnEl) {
+            if (selectedCr > cap) {
+                warnEl.style.display = "block";
+                warnEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> تجاوزت الحد الأقصى المسموح في ${rule.yearLabel} (<strong>${cap} ساعة</strong>). يرجى إلغاء تحديد بعض المقررات.`;
+            } else {
+                warnEl.style.display = "none";
+            }
+        }
+    }
+
     function maybeProceedWithEndOfYearResit(afterSemKey, nextAction, backAction) {
         if (!isEndOfAcademicYear(afterSemKey)) {
             nextAction();
@@ -1823,6 +2112,19 @@
         const rule = resitEligibilityRules[afterSemKey];
         const passedCreditsInScope = getPassedCreditsAcrossSemesters(rule.sems);
         const isEligibleForResit = passedCreditsInScope >= rule.minPassedCredits;
+
+        let runningCap = 0;
+        failed.forEach(item => {
+            const key = `${item.semKey}_${item.code}`;
+            if (state.resitSelections[key]) {
+                if (runningCap + item.credits <= rule.maxResitCredits) {
+                    runningCap += item.credits;
+                } else {
+                    state.resitSelections[key] = false;
+                    delete state.resitGrades[key];
+                }
+            }
+        });
 
         state.resitContext = {
             afterSem: afterSemKey,
@@ -1878,7 +2180,7 @@
             tr.innerHTML = `
                 <td style="text-align: center;">
                     <input type="checkbox" class="resit-check" ${isChecked ? "checked" : ""}
-                           onchange="toggleResitSelection('${item.semKey}', '${item.code}', this.checked)">
+                           onchange="toggleResitSelection('${afterSemKey}', '${item.semKey}', '${item.code}', ${item.credits}, this)">
                 </td>
                 <td><strong>${item.code}</strong></td>
                 <td>${item.name}</td>
@@ -1896,6 +2198,7 @@
             tbody.appendChild(tr);
         });
 
+        updateResitCapUI(afterSemKey);
         showSection('stepResit');
         updateDashboard();
     }
@@ -1908,8 +2211,25 @@
         }
     }
 
-    function toggleResitSelection(semKey, code, checked) {
+    function toggleResitSelection(afterSemKey, semKey, code, credits, checkboxEl) {
         const key = `${semKey}_${code}`;
+        const rule = resitEligibilityRules[afterSemKey];
+        const cap = rule ? rule.maxResitCredits : 12;
+
+        if (checkboxEl.checked) {
+            const currentSelected = getSelectedResitCreditsForYear(afterSemKey);
+            if (currentSelected + credits > cap) {
+                checkboxEl.checked = false;
+                const warnEl = document.getElementById('resitCapWarning');
+                if (warnEl) {
+                    warnEl.style.display = "block";
+                    warnEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> يحق لك تقديم <strong>${cap} ساعة فقط</strong> كحد أقصى في الدور الثاني لـ${rule.yearLabel} (المحدد حالياً: <strong>${currentSelected}</strong> ساعة، والمقرر المختار: <strong>${credits}</strong> ساعات).`;
+                }
+                return;
+            }
+        }
+
+        const checked = checkboxEl.checked;
         state.resitSelections[key] = checked;
         const inp = document.getElementById(`resit_inp_${key}`);
         if (inp) {
@@ -1921,6 +2241,7 @@
                 inp.focus();
             }
         }
+        updateResitCapUI(afterSemKey);
         updateDashboard();
     }
 
@@ -1960,6 +2281,15 @@
 
     function continueAfterResit() {
         if (state.resitContext) {
+            const afterSemKey = state.resitContext.afterSem;
+            const rule = resitEligibilityRules[afterSemKey];
+            const selectedCr = getSelectedResitCreditsForYear(afterSemKey);
+
+            if (rule && selectedCr > rule.maxResitCredits) {
+                alert(`يحق لك تقديم ${rule.maxResitCredits} ساعة فقط كحد أقصى في الدور الثاني لـ${rule.yearLabel}.`);
+                return;
+            }
+
             const failed = getAllFailedCoursesSem1ToSem6();
             for (const item of failed) {
                 const key = `${item.semKey}_${item.code}`;
@@ -2031,7 +2361,7 @@
             if (failedCourses.length > 0) {
                 const y3Rule = resitEligibilityRules.sem6;
                 if (cumM.totalPassedCredits >= y3Rule.minPassedCredits) {
-                    msg += `يرجى تقديم مقررات الرسوب واجتيازها في <strong>الدور الثاني للسنة الثالثة</strong> أولاً، وبعد اجتيازها سيظهر لك <strong>التقرير النهائي</strong>.`;
+                    msg += `يرجى تقديم مقررات الرسوب واجتيازها في <strong>الدور الثاني للسنة الثالثة</strong> (بحد أقصى <strong>${y3Rule.maxResitCredits} ساعة</strong>) أولاً، وبعد اجتيازها سيظهر لك <strong>التقرير النهائي</strong>.`;
                 } else {
                     msg += `يجب استكمال الساعات المطلوبة واجتياز مقررات الرسوب قبل ظهور <strong>التقرير النهائي</strong>.`;
                 }
