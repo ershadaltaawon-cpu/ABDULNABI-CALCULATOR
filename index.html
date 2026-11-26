@@ -419,9 +419,9 @@
         }
 
         .partial-status-box {
-            background: #fff7ed;
-            border: 1.5px solid #fb923c;
-            color: #9a3412;
+            background: #fef2f2;
+            border: 1.5px solid #f87171;
+            color: #991b1b;
             padding: 12px 14px;
             border-radius: 12px;
             margin-bottom: 14px;
@@ -1017,7 +1017,7 @@
             <div id="resitIneligibleSection" style="display: none;">
                 <div class="resit-ineligible-banner" id="resitIneligibleDesc"></div>
                 <button type="button" class="btn" onclick="skipIneligibleResitAndContinue()">
-                    المتابعة مباشرة <i class="fa-solid fa-arrow-left"></i>
+                    المتابعة <i class="fa-solid fa-arrow-left"></i>
                 </button>
             </div>
 
@@ -1040,7 +1040,7 @@
                 <span id="trackBadge" style="font-size: 0.78rem; background: #e8f4f8; color: var(--primary); padding: 4px 10px; border-radius: 12px; font-weight: 700;"></span>
             </div>
 
-            <div id="year2PartialNotice" class="partial-status-box"></div>
+            <div id="progressionBlockNotice" class="partial-status-box"></div>
 
             <!-- Improvement & Extra Course Controls (Semesters 2 to 6 ONLY) -->
             <div id="improvementSectionWrapper" style="display: none;">
@@ -1594,7 +1594,7 @@
         document.querySelectorAll('.step-section').forEach(el => el.classList.remove('active'));
         document.getElementById(sectionId).classList.add('active');
         if (sectionId === 'stepTrackSelection') {
-            refreshPartialStatusNotices();
+            refreshProgressionNotices();
         }
     }
 
@@ -1620,6 +1620,17 @@
     }
 
     function proceedToSpecializedSemesters() {
+        const y1Passed = getPassedCreditsAcrossSemesters(["sem1", "sem2"]);
+        if (y1Passed < YEAR1_MIN_PASSED_FOR_YEAR2) {
+            const banner = document.getElementById('year1PartialNotice');
+            if (banner) {
+                banner.style.display = "block";
+                banner.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <strong>لا يمكن المواصلة للسنة الثانية:</strong> لم تجتز <strong>${YEAR1_MIN_PASSED_FOR_YEAR2} ساعة</strong> من الفصل الأول والثاني من توحيد المسارات (المجتاز حالياً: <strong>${y1Passed}</strong> ساعة)، ويُعتبر الطالب <strong>جزئياً</strong> ولا ينتقل إلى السنة الثانية.`;
+                banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
         state.track = document.getElementById('studentTrack').value;
         state.trackSelected = true;
         state.currentSem = "sem3";
@@ -1628,33 +1639,36 @@
         renderSemesterView();
     }
 
-    function refreshPartialStatusNotices() {
+    function refreshProgressionNotices() {
         const y1Box = document.getElementById('year1PartialNotice');
-        const y2Box = document.getElementById('year2PartialNotice');
+        const progBox = document.getElementById('progressionBlockNotice');
         const resitPartialBox = document.getElementById('resitPartialNotice');
 
         if (y1Box) {
             const y1Passed = getPassedCreditsAcrossSemesters(["sem1", "sem2"]);
             if (y1Passed < YEAR1_MIN_PASSED_FOR_YEAR2) {
                 y1Box.style.display = "block";
-                y1Box.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>توضيح هام (السنة الأولى):</strong> لم تجتز <strong>${YEAR1_MIN_PASSED_FOR_YEAR2} ساعة</strong> من الفصلين الأول والثاني من توحيد المسارات (المجتاز حالياً: <strong>${y1Passed}</strong> ساعة)، لذلك يُعتبر الطالب <strong>جزئياً</strong> ولا ينتقل إلى السنة الثانية.`;
+                y1Box.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <strong>لا يمكن المواصلة للسنة الثانية:</strong> لم تجتز <strong>${YEAR1_MIN_PASSED_FOR_YEAR2} ساعة</strong> من الفصل الأول والثاني من توحيد المسارات (المجتاز حالياً: <strong>${y1Passed}</strong> ساعة)، ويُعتبر الطالب <strong>جزئياً</strong> ولا ينتقل إلى السنة الثانية.`;
             } else {
                 y1Box.style.display = "none";
             }
         }
 
-        if (y2Box) {
-            const y2Passed = getPassedCreditsAcrossSemesters(["sem1", "sem2", "sem3", "sem4"]);
-            if (state.trackSelected && (state.currentSem === "sem4" || state.currentSem === "sem5" || state.currentSem === "sem6") && y2Passed < YEAR2_MIN_PASSED_FOR_YEAR3) {
-                y2Box.style.display = "block";
-                y2Box.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>توضيح هام (السنة الثانية):</strong> لم تجتز <strong>${YEAR2_MIN_PASSED_FOR_YEAR3} ساعة</strong> من مجموع الفصول الأول إلى الرابع (المجتاز حالياً: <strong>${y2Passed}</strong> ساعة)، لذلك يُعتبر الطالب <strong>جزئياً</strong> ولا ينتقل إلى السنة الثالثة.`;
-            } else {
-                y2Box.style.display = "none";
-            }
+        if (progBox) {
+            progBox.style.display = "none";
         }
 
         if (resitPartialBox) {
             resitPartialBox.style.display = "none";
+        }
+    }
+
+    function showProgressionBlockBanner(messageHtml) {
+        const progBox = document.getElementById('progressionBlockNotice');
+        if (progBox) {
+            progBox.style.display = "block";
+            progBox.innerHTML = messageHtml;
+            progBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
 
@@ -1827,10 +1841,10 @@
         if (resitPartialBox) {
             if (afterSemKey === "sem2" && passedCreditsInScope < YEAR1_MIN_PASSED_FOR_YEAR2) {
                 resitPartialBox.style.display = "block";
-                resitPartialBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>توضيح (السنة الأولى):</strong> لم تجتز <strong>${YEAR1_MIN_PASSED_FOR_YEAR2} ساعة</strong> من الفصلين الأول والثاني من توحيد المسارات (المجتاز حالياً: <strong>${passedCreditsInScope}</strong> ساعة)، فيُعتبر الطالب <strong>جزئياً</strong> ولا ينتقل إلى السنة الثانية.`;
+                resitPartialBox.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <strong>توضيح (السنة الأولى):</strong> لم تجتز <strong>${YEAR1_MIN_PASSED_FOR_YEAR2} ساعة</strong> من الفصل الأول والثاني من توحيد المسارات (المجتاز حالياً: <strong>${passedCreditsInScope}</strong> ساعة)، فيُعتبر الطالب <strong>جزئياً</strong> ولا يمكنه المواصلة للسنة الثانية.`;
             } else if (afterSemKey === "sem4" && passedCreditsInScope < YEAR2_MIN_PASSED_FOR_YEAR3) {
                 resitPartialBox.style.display = "block";
-                resitPartialBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>توضيح (السنة الثانية):</strong> لم تجتز <strong>${YEAR2_MIN_PASSED_FOR_YEAR3} ساعة</strong> من مجموع الفصول الأول إلى الرابع (المجتاز حالياً: <strong>${passedCreditsInScope}</strong> ساعة)، فيُعتبر الطالب <strong>جزئياً</strong> ولا ينتقل إلى السنة الثالثة.`;
+                resitPartialBox.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <strong>توضيح (السنة الثانية):</strong> لم تجتز <strong>${YEAR2_MIN_PASSED_FOR_YEAR3} ساعة</strong> من مجموع الفصول الأول إلى الرابع (المجتاز حالياً: <strong>${passedCreditsInScope}</strong> ساعة)، فيُعتبر الطالب <strong>جزئياً</strong> ولا يمكنه المواصلة للسنة الثالثة.`;
             } else {
                 resitPartialBox.style.display = "none";
             }
@@ -1843,7 +1857,7 @@
             document.getElementById('resitIneligibleDesc').innerHTML =
                 `<i class="fa-solid fa-lock"></i> <strong>لا يحق لك تقديم الدور الثاني في ${rule.yearLabel}:</strong><br>` +
                 `يشترط لدخول الدور الثاني في نهاية ${rule.yearLabel} اجتياز <strong>${rule.minPassedCredits} ساعة معتمدة</strong> على الأقل ${rule.scopeText}.<br>` +
-                `عدد الساعات المعتمدة المجتازة حالياً ${rule.scopeText}: <strong>${passedCreditsInScope} ساعة معتمدة</strong>، ولذلك لا يظهر لك الدور الثاني ويمكنك المتابعة مباشرة.`;
+                `عدد الساعات المعتمدة المجتازة حالياً ${rule.scopeText}: <strong>${passedCreditsInScope} ساعة معتمدة</strong>، ولذلك لا يظهر لك الدور الثاني ويمكنك المتابعة.`;
 
             showSection('stepResit');
             updateDashboard();
@@ -1997,31 +2011,40 @@
         return failed;
     }
 
+    function canAdvanceToYear2() {
+        return getPassedCreditsAcrossSemesters(["sem1", "sem2"]) >= YEAR1_MIN_PASSED_FOR_YEAR2;
+    }
+
+    function canAdvanceToYear3() {
+        return getPassedCreditsAcrossSemesters(["sem1", "sem2", "sem3", "sem4"]) >= YEAR2_MIN_PASSED_FOR_YEAR3;
+    }
+
     function attemptOpenFinalReport() {
+        const cumM = computeCumulativeMetrics();
         const failedCourses = collectFailedCourses();
-        if (failedCourses.length > 0) {
-            const totalFailedCr = failedCourses.reduce((sum, item) => sum + item.credits, 0);
-            const listItems = failedCourses.map(item =>
-                `<li>• <strong>${item.code} - ${item.name}</strong> (${item.semLabel}) — الدرجة: ${item.grade} (${item.credits} ساعات)</li>`
-            ).join("");
 
-            document.getElementById('failedReminderBody').innerHTML =
-                `لديك <strong>${totalFailedCr}</strong> ساعة غير مجتازة في المقررات التالية:<ul class="failed-courses-list">${listItems}</ul>`;
+        if (cumM.totalPassedCredits < TOTAL_PLAN_CREDITS || failedCourses.length > 0) {
+            const missingCr = Math.max(0, TOTAL_PLAN_CREDITS - cumM.totalPassedCredits);
+            let msg = `<i class="fa-solid fa-circle-xmark"></i> <strong>لا يمكن عرض التقرير النهائي حالياً:</strong><br>`;
+            msg += `يجب اجتياز <strong>${TOTAL_PLAN_CREDITS} ساعة معتمدة</strong> كاملة واجتياز جميع مقررات الرسوب (المجتاز حالياً: <strong>${cumM.totalPassedCredits}</strong> ساعة، والمتبقي: <strong>${missingCr}</strong> ساعة).<br>`;
 
-            document.getElementById('failedReminderModal').classList.add('open');
+            if (failedCourses.length > 0) {
+                const y3Rule = resitEligibilityRules.sem6;
+                if (cumM.totalPassedCredits >= y3Rule.minPassedCredits) {
+                    msg += `يرجى تقديم مقررات الرسوب واجتيازها في <strong>الدور الثاني للسنة الثالثة</strong> أولاً، وبعد اجتيازها سيظهر لك <strong>التقرير النهائي</strong>.`;
+                } else {
+                    msg += `يجب استكمال الساعات المطلوبة واجتياز مقررات الرسوب قبل ظهور <strong>التقرير النهائي</strong>.`;
+                }
+            } else {
+                msg += `يجب استكمال اجتياز كافة الساعات المطلوبة (<strong>${TOTAL_PLAN_CREDITS} ساعة</strong>) ليظهر لك <strong>التقرير النهائي</strong>.`;
+            }
+
+            showProgressionBlockBanner(msg);
             return;
         }
+
         showFinalReport();
     }
-
-    function closeFailedReminderModal() {
-        document.getElementById('failedReminderModal').classList.remove('open');
-    }
-
-    document.getElementById('proceedToReportBtn').addEventListener('click', function () {
-        closeFailedReminderModal();
-        showFinalReport();
-    });
 
     function navigateToSemester(semKey) {
         const currentIdx = semOrder.indexOf(state.currentSem);
@@ -2029,6 +2052,19 @@
 
         if (targetIdx > currentIdx) {
             if (!validateSemesterComplete(state.currentSem)) return;
+
+            if (targetIdx >= 2 && !canAdvanceToYear2()) {
+                const y1Passed = getPassedCreditsAcrossSemesters(["sem1", "sem2"]);
+                showProgressionBlockBanner(`<i class="fa-solid fa-circle-xmark"></i> <strong>لا يمكن المواصلة للسنة الثانية:</strong> لم تجتز <strong>${YEAR1_MIN_PASSED_FOR_YEAR2} ساعة</strong> من الفصل الأول والثاني (المجتاز حالياً: <strong>${y1Passed}</strong> ساعة).`);
+                return;
+            }
+
+            if (targetIdx >= 4 && !canAdvanceToYear3()) {
+                const y2Passed = getPassedCreditsAcrossSemesters(["sem1", "sem2", "sem3", "sem4"]);
+                showProgressionBlockBanner(`<i class="fa-solid fa-circle-xmark"></i> <strong>لا يمكن المواصلة للسنة الثالثة:</strong> لم تجتز <strong>${YEAR2_MIN_PASSED_FOR_YEAR3} ساعة</strong> من مجموع الفصول الأول إلى الرابع (المجتاز حالياً: <strong>${y2Passed}</strong> ساعة).`);
+                return;
+            }
+
             const prevSem = state.currentSem;
             const goTarget = () => {
                 state.currentSem = semKey;
@@ -2057,25 +2093,41 @@
             showSection('step2');
             renderSemesterView();
         } else if (curSem === "sem2") {
-            const goTrack = () => showSection('stepTrackSelection');
-            maybeProceedWithEndOfYearResit("sem2", goTrack, () => {
+            const afterYear1Resit = () => {
+                const y1Passed = getPassedCreditsAcrossSemesters(["sem1", "sem2"]);
+                if (y1Passed < YEAR1_MIN_PASSED_FOR_YEAR2) {
+                    showSection('step2');
+                    renderSemesterView();
+                    showProgressionBlockBanner(`<i class="fa-solid fa-circle-xmark"></i> <strong>لا يمكن المواصلة للسنة الثانية:</strong> لم تجتز <strong>${YEAR1_MIN_PASSED_FOR_YEAR2} ساعة</strong> من الفصل الأول والثاني من توحيد المسارات (المجتاز حالياً: <strong>${y1Passed}</strong> ساعة)، ويُعتبر الطالب <strong>جزئياً</strong> ولا ينتقل إلى السنة الثانية.`);
+                    return;
+                }
+                showSection('stepTrackSelection');
+            };
+            maybeProceedWithEndOfYearResit("sem2", afterYear1Resit, () => {
                 showSection('step2');
                 renderSemesterView();
             });
         } else if (curSem === "sem4") {
-            const goSem5 = () => {
+            const afterYear2Resit = () => {
+                const y2Passed = getPassedCreditsAcrossSemesters(["sem1", "sem2", "sem3", "sem4"]);
+                if (y2Passed < YEAR2_MIN_PASSED_FOR_YEAR3) {
+                    showSection('step2');
+                    renderSemesterView();
+                    showProgressionBlockBanner(`<i class="fa-solid fa-circle-xmark"></i> <strong>لا يمكن المواصلة للسنة الثالثة:</strong> لم تجتز <strong>${YEAR2_MIN_PASSED_FOR_YEAR3} ساعة</strong> من مجموع الفصول الأول إلى الرابع (المجتاز حالياً: <strong>${y2Passed}</strong> ساعة)، ويُعتبر الطالب <strong>جزئياً</strong> ولا ينتقل إلى السنة الثالثة.`);
+                    return;
+                }
                 state.currentSem = "sem5";
                 state.visitedSems.add("sem5");
                 showSection('step2');
                 renderSemesterView();
             };
-            maybeProceedWithEndOfYearResit("sem4", goSem5, () => {
+            maybeProceedWithEndOfYearResit("sem4", afterYear2Resit, () => {
                 showSection('step2');
                 renderSemesterView();
             });
         } else if (curSem === "sem6") {
-            const goReport = () => attemptOpenFinalReport();
-            maybeProceedWithEndOfYearResit("sem6", goReport, () => {
+            const afterYear3Resit = () => attemptOpenFinalReport();
+            maybeProceedWithEndOfYearResit("sem6", afterYear3Resit, () => {
                 showSection('step2');
                 renderSemesterView();
             });
@@ -2206,13 +2258,14 @@
         const banner = document.getElementById('validationBanner');
         if (banner) banner.style.display = "none";
 
+        const progBox = document.getElementById('progressionBlockNotice');
+        if (progBox) progBox.style.display = "none";
+
         document.getElementById('currentSemHeading').textContent = semLabels[semKey];
         document.getElementById('trackBadge').textContent =
             (semKey === "sem1" || semKey === "sem2")
                 ? `توحيد المسارات (${state.group === "A" ? "مجموعة أ" : "مجموعة ب"})`
                 : trackLabels[state.track];
-
-        refreshPartialStatusNotices();
 
         const impWrapper = document.getElementById('improvementSectionWrapper');
         document.getElementById('improveBox').classList.remove('open');
