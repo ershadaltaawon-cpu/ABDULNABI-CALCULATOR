@@ -220,6 +220,77 @@
             line-height: 1.75;
         }
 
+        /* Diagnostic & Recommendation Panel */
+        .diagnostic-card {
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .diagnostic-title {
+            font-size: 0.96rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .sw-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .strength-box {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.84rem;
+            color: #14532d;
+            line-height: 1.7;
+        }
+
+        .weakness-box {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.84rem;
+            color: #991b1b;
+            line-height: 1.7;
+        }
+
+        .recommendation-box {
+            background: #eff6ff;
+            border: 1.5px solid #93c5fd;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 0.86rem;
+            color: #1e3a8a;
+            line-height: 1.75;
+        }
+
+        .apply-rec-btn {
+            margin-top: 8px;
+            background: #1d4ed8;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 7px 12px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         /* Track Courses Explorer Panel */
         .track-explorer-box {
             background: #f8fafc;
@@ -1060,6 +1131,10 @@
                 <i class="fa-solid fa-route"></i> اختيار المسار التخصصي
             </h2>
             <div id="year1PartialNotice" class="partial-status-box"></div>
+
+            <!-- Strength, Weakness & Track Recommendation Card -->
+            <div id="trackDiagnosticCard" class="diagnostic-card"></div>
+
             <p style="margin-bottom: 14px; font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
                 أتممت إدخال علامات فصول توحيد المسارات (الأول والثاني). يرجى اختيار مسارك التخصصي للانتقال إلى الفصول (الثالث، الرابع، الخامس، السادس):
             </p>
@@ -1679,6 +1754,131 @@
 
     let pendingReturnAction = null;
 
+    // --- Strengths, Weaknesses & Track Recommendation ---
+    function analyzeSem1Sem2Performance() {
+        const collected = [];
+        ["sem1", "sem2"].forEach(sKey => {
+            const courses = getEffectiveSemesterCourses(sKey);
+            courses.forEach(c => {
+                if (c.isMovedOut) return;
+                const g = getEffectiveCourseGrade(sKey, c.code);
+                if (g !== undefined && !isNaN(g)) {
+                    collected.push({
+                        code: c.code,
+                        normCode: normalizeArabicCode(c.code),
+                        name: c.name,
+                        credits: c.credits,
+                        grade: g
+                    });
+                }
+            });
+        });
+
+        const strengths = collected
+            .filter(item => item.grade >= 80)
+            .sort((a, b) => b.grade - a.grade);
+
+        const weaknesses = collected
+            .filter(item => item.grade < 65)
+            .sort((a, b) => a.grade - b.grade);
+
+        function domainAverage(codeList) {
+            const norms = new Set(codeList.map(normalizeArabicCode));
+            const matching = collected.filter(item => norms.has(item.normCode));
+            if (matching.length === 0) return null;
+            const totalW = matching.reduce((sum, x) => sum + x.grade * x.credits, 0);
+            const totalC = matching.reduce((sum, x) => sum + x.credits, 0);
+            return totalC > 0 ? totalW / totalC : null;
+        }
+
+        const mathAvg = domainAverage(["ريض151", "ريض152"]);
+        const physAvg = domainAverage(["فيز102"]);
+        const chemBioAvg = domainAverage(["كيم102", "حيا102"]);
+        const commAvg = domainAverage(["قصد101", "أجا102"]);
+        const litAvg = domainAverage(["عرب101", "عرب102", "إنج101", "إنج102"]);
+
+        const scores = {
+            chem_bio: ((chemBioAvg !== null ? chemBioAvg : 70) * 0.65) + ((mathAvg !== null ? mathAvg : 70) * 0.35),
+            phys_math: ((mathAvg !== null ? mathAvg : 70) * 0.55) + ((physAvg !== null ? physAvg : 70) * 0.45),
+            commercial: ((commAvg !== null ? commAvg : 70) * 0.6) + ((mathAvg !== null ? mathAvg : 70) * 0.4),
+            literary: ((litAvg !== null ? litAvg : 70) * 0.7) + ((commAvg !== null ? commAvg : 70) * 0.3)
+        };
+
+        let recommendedTrack = "chem_bio";
+        let bestScore = -1;
+        Object.keys(scores).forEach(tKey => {
+            if (scores[tKey] > bestScore) {
+                bestScore = scores[tKey];
+                recommendedTrack = tKey;
+            }
+        });
+
+        const reasons = [];
+        if (mathAvg !== null) reasons.push(`متوسط الرياضيات: <strong>${mathAvg.toFixed(1)}%</strong>`);
+        if (physAvg !== null) reasons.push(`الفيزياء1: <strong>${physAvg.toFixed(1)}%</strong>`);
+        if (chemBioAvg !== null) reasons.push(`متوسط الكيمياء والأحياء: <strong>${chemBioAvg.toFixed(1)}%</strong>`);
+        if (commAvg !== null) reasons.push(`متوسط الاقتصاد والجغرافيا: <strong>${commAvg.toFixed(1)}%</strong>`);
+        if (litAvg !== null) reasons.push(`متوسط اللغة العربية والإنجليزية: <strong>${litAvg.toFixed(1)}%</strong>`);
+
+        return {
+            strengths,
+            weaknesses,
+            recommendedTrack,
+            reasonsText: reasons.join(" | ")
+        };
+    }
+
+    function renderTrackDiagnosticCard() {
+        const card = document.getElementById('trackDiagnosticCard');
+        if (!card) return;
+
+        const analysis = analyzeSem1Sem2Performance();
+
+        const strengthHtml = analysis.strengths.length > 0
+            ? analysis.strengths.slice(0, 5).map(s => `• <strong>${s.code} (${s.name})</strong>: ${s.grade}%`).join("<br>")
+            : "لم تظهر درجات مرتفعة (80% فأعلى) بعد؛ يُنصح بتعزيز الأداء في المواد الأساسية.";
+
+        const weaknessHtml = analysis.weaknesses.length > 0
+            ? analysis.weaknesses.slice(0, 5).map(w => `• <strong>${w.code} (${w.name})</strong>: ${w.grade}%`).join("<br>")
+            : "لا توجد نقاط ضعف دون 65% في الفصلين الأول والثاني.";
+
+        const recLabel = trackLabels[analysis.recommendedTrack];
+
+        card.innerHTML = `
+            <div class="diagnostic-title">
+                <i class="fa-solid fa-chart-pie"></i> تحليل نقاط القوة والضعف واقتراح المسار (من الفصلين الأول والثاني)
+            </div>
+            <div class="sw-grid">
+                <div class="strength-box">
+                    <div style="font-weight: 900; margin-bottom: 4px;"><i class="fa-solid fa-circle-check"></i> نقاط القوة</div>
+                    ${strengthHtml}
+                </div>
+                <div class="weakness-box">
+                    <div style="font-weight: 900; margin-bottom: 4px;"><i class="fa-solid fa-triangle-exclamation"></i> نقاط الضعف التي تحتاج دعماً</div>
+                    ${weaknessHtml}
+                </div>
+            </div>
+            <div class="recommendation-box">
+                <div><i class="fa-solid fa-compass"></i> <strong>المسار التخصصي المقترح لك:</strong> <span style="font-weight: 900; color: #1d4ed8;">${recLabel}</span></div>
+                <div style="font-size: 0.8rem; margin-top: 4px;">${analysis.reasonsText}</div>
+                <button type="button" class="apply-rec-btn" onclick="applyRecommendedTrack('${analysis.recommendedTrack}')">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> اختيار المسار المقترح (${recLabel})
+                </button>
+            </div>
+        `;
+    }
+
+    function applyRecommendedTrack(trackKey) {
+        const sel = document.getElementById('studentTrack');
+        if (sel) {
+            sel.value = trackKey;
+        }
+        explorerState.track = trackKey;
+        if (explorerState.openTargetId === 'trackSelectionExplorer') {
+            renderTrackExplorerContent('trackSelectionExplorer');
+        }
+    }
+
     // --- Track Courses Explorer ---
     function syncPreviewTrackFromSelection() {
         const sel = document.getElementById('studentTrack');
@@ -1847,6 +2047,7 @@
         document.getElementById(sectionId).classList.add('active');
         if (sectionId === 'stepTrackSelection') {
             refreshProgressionNotices();
+            renderTrackDiagnosticCard();
         }
     }
 
