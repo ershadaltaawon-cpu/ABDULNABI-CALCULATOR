@@ -418,6 +418,19 @@
             display: none;
         }
 
+        .partial-status-box {
+            background: #fff7ed;
+            border: 1.5px solid #fb923c;
+            color: #9a3412;
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 14px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            line-height: 1.75;
+            display: none;
+        }
+
         .action-box {
             background: #f0f9ff;
             border: 1.5px solid #bae6fd;
@@ -442,6 +455,18 @@
             font-size: 0.86rem;
             font-weight: 700;
             line-height: 1.65;
+        }
+
+        .resit-ineligible-banner {
+            background: #fef2f2;
+            border: 1.5px solid #f87171;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 14px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            line-height: 1.8;
         }
 
         .resit-check {
@@ -932,6 +957,7 @@
             <h2 style="margin-bottom: 10px; color: var(--primary); font-size: 1.1rem;">
                 <i class="fa-solid fa-route"></i> اختيار المسار التخصصي
             </h2>
+            <div id="year1PartialNotice" class="partial-status-box"></div>
             <p style="margin-bottom: 14px; font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
                 أتممت إدخال علامات فصول توحيد المسارات (الأول والثاني). يرجى اختيار مسارك التخصصي للانتقال إلى الفصول (الثالث، الرابع، الخامس، السادس):
             </p>
@@ -957,31 +983,44 @@
             <h2 id="resitHeading" style="margin-bottom: 10px; color: var(--primary); font-size: 1.15rem;">
                 <i class="fa-solid fa-rotate"></i> الدور الثاني لنهاية السنة الدراسية
             </h2>
-            <div class="resit-banner" id="resitBannerDesc">
-                <i class="fa-solid fa-circle-info"></i>
-                يُطرح الدور الثاني مع نهاية كل سنة دراسية لمن عليه رسوب في أي مقرر من الفصل الأول إلى الفصل السادس؛ يمكنك تحديد المقررات التي ترغب في تقديمها في هذا الدور الثاني وإدخال درجتها الجديدة، أو ترك أي مقرر غير محدد لتقديمه في السنوات الأخرى.
+
+            <div id="resitPartialNotice" class="partial-status-box"></div>
+
+            <div id="resitEligibleSection">
+                <div class="resit-banner" id="resitBannerDesc">
+                    <i class="fa-solid fa-circle-info"></i>
+                    يُطرح الدور الثاني مع نهاية كل سنة دراسية لمن عليه رسوب واستوفى شرط الساعات المعتمدة؛ يمكنك تحديد المقررات التي ترغب في تقديمها في هذا الدور الثاني وإدخال درجتها الجديدة، أو ترك أي مقرر غير محدد لتقديمه في السنوات الأخرى.
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>تقديم الدور الثاني</th>
+                                <th>الرمز</th>
+                                <th>اسم المقرر</th>
+                                <th>الفصل</th>
+                                <th>الساعات</th>
+                                <th>الدرجة السابقة</th>
+                                <th>درجة الدور الثاني (0-100)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resitTableBody"></tbody>
+                    </table>
+                </div>
+
+                <button type="button" class="btn btn-resit" id="resitContinueBtn" onclick="continueAfterResit()">
+                    حفظ الدور الثاني والمتابعة <i class="fa-solid fa-arrow-left"></i>
+                </button>
             </div>
 
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>تقديم الدور الثاني</th>
-                            <th>الرمز</th>
-                            <th>اسم المقرر</th>
-                            <th>الفصل</th>
-                            <th>الساعات</th>
-                            <th>الدرجة السابقة</th>
-                            <th>درجة الدور الثاني (0-100)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resitTableBody"></tbody>
-                </table>
+            <div id="resitIneligibleSection" style="display: none;">
+                <div class="resit-ineligible-banner" id="resitIneligibleDesc"></div>
+                <button type="button" class="btn" onclick="skipIneligibleResitAndContinue()">
+                    المتابعة مباشرة <i class="fa-solid fa-arrow-left"></i>
+                </button>
             </div>
 
-            <button type="button" class="btn btn-resit" id="resitContinueBtn" onclick="continueAfterResit()">
-                حفظ الدور الثاني والمتابعة <i class="fa-solid fa-arrow-left"></i>
-            </button>
             <button type="button" class="btn btn-secondary" onclick="backFromResit()">
                 <i class="fa-solid fa-arrow-right"></i> رجوع إلى الفصل
             </button>
@@ -1000,6 +1039,8 @@
                 <h2 id="currentSemHeading" style="color: var(--primary); font-size: 1.1rem;">الفصل الأول</h2>
                 <span id="trackBadge" style="font-size: 0.78rem; background: #e8f4f8; color: var(--primary); padding: 4px 10px; border-radius: 12px; font-weight: 700;"></span>
             </div>
+
+            <div id="year2PartialNotice" class="partial-status-box"></div>
 
             <!-- Improvement & Extra Course Controls (Semesters 2 to 6 ONLY) -->
             <div id="improvementSectionWrapper" style="display: none;">
@@ -1162,6 +1203,8 @@
 <script>
     const TOTAL_PLAN_CREDITS = 156;
     const SEM2_MIN_SEM1_CREDITS_FOR_IMPROVEMENT = 24;
+    const YEAR1_MIN_PASSED_FOR_YEAR2 = 36;
+    const YEAR2_MIN_PASSED_FOR_YEAR3 = 80;
 
     const rawCoursesData = {
         level1_A: {
@@ -1446,6 +1489,28 @@
         sem4: "نهاية السنة الدراسية الثانية",
         sem6: "نهاية السنة الدراسية الثالثة"
     };
+
+    const resitEligibilityRules = {
+        sem2: {
+            minPassedCredits: 24,
+            sems: ["sem1", "sem2"],
+            yearLabel: "السنة الأولى",
+            scopeText: "من الفصلين (الأول والثاني)"
+        },
+        sem4: {
+            minPassedCredits: 68,
+            sems: ["sem1", "sem2", "sem3", "sem4"],
+            yearLabel: "السنة الثانية",
+            scopeText: "من الفصول الأربعة (الأول حتى الرابع)"
+        },
+        sem6: {
+            minPassedCredits: 132,
+            sems: ["sem1", "sem2", "sem3", "sem4", "sem5", "sem6"],
+            yearLabel: "السنة الثالثة",
+            scopeText: "من الفصول الستة (الأول حتى السادس)"
+        }
+    };
+
     const trackLabels = {
         chem_bio: "علمي (كيمياء - أحياء)",
         phys_math: "علمي (فيزياء - رياضيات)",
@@ -1528,6 +1593,9 @@
     function showSection(sectionId) {
         document.querySelectorAll('.step-section').forEach(el => el.classList.remove('active'));
         document.getElementById(sectionId).classList.add('active');
+        if (sectionId === 'stepTrackSelection') {
+            refreshPartialStatusNotices();
+        }
     }
 
     function openCalculatorFromIntro() {
@@ -1558,6 +1626,36 @@
         state.visitedSems.add("sem3");
         showSection('step2');
         renderSemesterView();
+    }
+
+    function refreshPartialStatusNotices() {
+        const y1Box = document.getElementById('year1PartialNotice');
+        const y2Box = document.getElementById('year2PartialNotice');
+        const resitPartialBox = document.getElementById('resitPartialNotice');
+
+        if (y1Box) {
+            const y1Passed = getPassedCreditsAcrossSemesters(["sem1", "sem2"]);
+            if (y1Passed < YEAR1_MIN_PASSED_FOR_YEAR2) {
+                y1Box.style.display = "block";
+                y1Box.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>توضيح هام (السنة الأولى):</strong> لم تجتز <strong>${YEAR1_MIN_PASSED_FOR_YEAR2} ساعة</strong> من الفصلين الأول والثاني من توحيد المسارات (المجتاز حالياً: <strong>${y1Passed}</strong> ساعة)، لذلك يُعتبر الطالب <strong>جزئياً</strong> ولا ينتقل إلى السنة الثانية.`;
+            } else {
+                y1Box.style.display = "none";
+            }
+        }
+
+        if (y2Box) {
+            const y2Passed = getPassedCreditsAcrossSemesters(["sem1", "sem2", "sem3", "sem4"]);
+            if (state.trackSelected && (state.currentSem === "sem4" || state.currentSem === "sem5" || state.currentSem === "sem6") && y2Passed < YEAR2_MIN_PASSED_FOR_YEAR3) {
+                y2Box.style.display = "block";
+                y2Box.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>توضيح هام (السنة الثانية):</strong> لم تجتز <strong>${YEAR2_MIN_PASSED_FOR_YEAR3} ساعة</strong> من مجموع الفصول الأول إلى الرابع (المجتاز حالياً: <strong>${y2Passed}</strong> ساعة)، لذلك يُعتبر الطالب <strong>جزئياً</strong> ولا ينتقل إلى السنة الثالثة.`;
+            } else {
+                y2Box.style.display = "none";
+            }
+        }
+
+        if (resitPartialBox) {
+            resitPartialBox.style.display = "none";
+        }
     }
 
     function validateSemesterComplete(semKey) {
@@ -1649,7 +1747,17 @@
     });
 
     function isEndOfAcademicYear(semKey) {
-        return semKey === "sem2" || semKey === "sem4" || semKey === "sem6";
+        return Boolean(resitEligibilityRules[semKey]);
+    }
+
+    function getPassedCreditsAcrossSemesters(semList) {
+        let sum = 0;
+        semList.forEach(sKey => {
+            const idx = semOrder.indexOf(sKey);
+            if (idx >= 2 && !state.trackSelected) return;
+            sum += computeSemesterMetrics(sKey).passedCredits;
+        });
+        return sum;
     }
 
     function getAllFailedCoursesSem1ToSem6() {
@@ -1698,6 +1806,10 @@
             return;
         }
 
+        const rule = resitEligibilityRules[afterSemKey];
+        const passedCreditsInScope = getPassedCreditsAcrossSemesters(rule.sems);
+        const isEligibleForResit = passedCreditsInScope >= rule.minPassedCredits;
+
         state.resitContext = {
             afterSem: afterSemKey,
             nextAction,
@@ -1707,7 +1819,40 @@
         document.getElementById('resitHeading').innerHTML =
             `<i class="fa-solid fa-rotate"></i> الدور الثاني — ${academicYearLabels[afterSemKey]}`;
 
+        const eligibleSec = document.getElementById('resitEligibleSection');
+        const ineligibleSec = document.getElementById('resitIneligibleSection');
+        const resitPartialBox = document.getElementById('resitPartialNotice');
         const tbody = document.getElementById('resitTableBody');
+
+        if (resitPartialBox) {
+            if (afterSemKey === "sem2" && passedCreditsInScope < YEAR1_MIN_PASSED_FOR_YEAR2) {
+                resitPartialBox.style.display = "block";
+                resitPartialBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>توضيح (السنة الأولى):</strong> لم تجتز <strong>${YEAR1_MIN_PASSED_FOR_YEAR2} ساعة</strong> من الفصلين الأول والثاني من توحيد المسارات (المجتاز حالياً: <strong>${passedCreditsInScope}</strong> ساعة)، فيُعتبر الطالب <strong>جزئياً</strong> ولا ينتقل إلى السنة الثانية.`;
+            } else if (afterSemKey === "sem4" && passedCreditsInScope < YEAR2_MIN_PASSED_FOR_YEAR3) {
+                resitPartialBox.style.display = "block";
+                resitPartialBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>توضيح (السنة الثانية):</strong> لم تجتز <strong>${YEAR2_MIN_PASSED_FOR_YEAR3} ساعة</strong> من مجموع الفصول الأول إلى الرابع (المجتاز حالياً: <strong>${passedCreditsInScope}</strong> ساعة)، فيُعتبر الطالب <strong>جزئياً</strong> ولا ينتقل إلى السنة الثالثة.`;
+            } else {
+                resitPartialBox.style.display = "none";
+            }
+        }
+
+        if (!isEligibleForResit) {
+            eligibleSec.style.display = "none";
+            tbody.innerHTML = "";
+            ineligibleSec.style.display = "block";
+            document.getElementById('resitIneligibleDesc').innerHTML =
+                `<i class="fa-solid fa-lock"></i> <strong>لا يحق لك تقديم الدور الثاني في ${rule.yearLabel}:</strong><br>` +
+                `يشترط لدخول الدور الثاني في نهاية ${rule.yearLabel} اجتياز <strong>${rule.minPassedCredits} ساعة معتمدة</strong> على الأقل ${rule.scopeText}.<br>` +
+                `عدد الساعات المعتمدة المجتازة حالياً ${rule.scopeText}: <strong>${passedCreditsInScope} ساعة معتمدة</strong>، ولذلك لا يظهر لك الدور الثاني ويمكنك المتابعة مباشرة.`;
+
+            showSection('stepResit');
+            updateDashboard();
+            return;
+        }
+
+        eligibleSec.style.display = "block";
+        ineligibleSec.style.display = "none";
+
         tbody.innerHTML = "";
 
         failed.forEach(item => {
@@ -1739,6 +1884,14 @@
 
         showSection('stepResit');
         updateDashboard();
+    }
+
+    function skipIneligibleResitAndContinue() {
+        if (state.resitContext) {
+            const nextFn = state.resitContext.nextAction;
+            state.resitContext = null;
+            nextFn();
+        }
     }
 
     function toggleResitSelection(semKey, code, checked) {
@@ -2058,6 +2211,8 @@
             (semKey === "sem1" || semKey === "sem2")
                 ? `توحيد المسارات (${state.group === "A" ? "مجموعة أ" : "مجموعة ب"})`
                 : trackLabels[state.track];
+
+        refreshPartialStatusNotices();
 
         const impWrapper = document.getElementById('improvementSectionWrapper');
         document.getElementById('improveBox').classList.remove('open');
