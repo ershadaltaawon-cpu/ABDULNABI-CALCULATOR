@@ -13,10 +13,11 @@
             --accent: #52b788;
             --text-dark: #1f2937;
             --text-muted: #6b7280;
-            --danger: #b91c1c;
-            --warning: #b45309;
-            --radius: 14px;
-            --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            --danger: #dc2626;
+            --warning: #eab308;
+            --success: #16a34a;
+            --radius: 16px;
+            --shadow: 0 12px 30px rgba(27, 67, 50, 0.08);
         }
 
         * {
@@ -28,10 +29,10 @@
         }
 
         body {
-            background: linear-gradient(135deg, #eef6f2 0%, #e6f0f5 100%);
+            background: radial-gradient(circle at top right, #e6f4ec 0%, #f1f7f9 55%, #e8eff5 100%);
             color: var(--text-dark);
             min-height: 100vh;
-            padding: 12px;
+            padding: 14px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -39,48 +40,49 @@
 
         .container {
             width: 100%;
-            max-width: 820px;
+            max-width: 840px;
             background: #ffffff;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             overflow: hidden;
-            border: 1px solid rgba(82, 183, 136, 0.25);
+            border: 1px solid rgba(45, 106, 79, 0.16);
             margin-bottom: 16px;
         }
 
         header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, #143628 0%, #1b4332 50%, #2d6a4f 100%);
             color: #ffffff;
-            padding: 20px 16px;
+            padding: 22px 16px;
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 8px;
+            position: relative;
         }
 
         .school-logo {
-            width: 62px;
-            height: 62px;
+            width: 64px;
+            height: 64px;
             background: #ffffff;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--primary);
-            font-size: 1.6rem;
-            border: 3px solid var(--accent);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 1.65rem;
+            border: 3px solid #80ed99;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
         header h1 {
-            font-size: 1.35rem;
+            font-size: 1.38rem;
             font-weight: 900;
-            line-height: 1.3;
+            line-height: 1.35;
         }
 
         header p {
-            font-size: 0.85rem;
+            font-size: 0.86rem;
             opacity: 0.92;
         }
 
@@ -88,7 +90,7 @@
             margin-top: 4px;
             background: rgba(255, 255, 255, 0.14);
             border: 1px solid rgba(255, 255, 255, 0.28);
-            padding: 4px 12px;
+            padding: 4px 14px;
             border-radius: 999px;
             font-size: 0.78rem;
             font-weight: 700;
@@ -99,7 +101,7 @@
         }
 
         .content {
-            padding: 16px;
+            padding: 18px;
         }
 
         .step-section {
@@ -120,7 +122,7 @@
         .intro-box {
             background: #f8fafc;
             border: 1.5px solid #d8f3dc;
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 16px;
             margin-bottom: 14px;
             line-height: 1.75;
@@ -218,6 +220,164 @@
             font-size: 0.82rem;
             color: #14532d;
             line-height: 1.75;
+        }
+
+        /* Attractive Circular GPA Dashboard */
+        .dashboard-shell {
+            background: linear-gradient(145deg, #102a1f 0%, #1b4332 60%, #23533e 100%);
+            border-radius: 16px;
+            padding: 14px;
+            margin-bottom: 16px;
+            color: #ffffff;
+            box-shadow: 0 8px 22px rgba(16, 42, 31, 0.22);
+        }
+
+        .circles-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+
+        .circular-gpa-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 14px;
+            padding: 12px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            backdrop-filter: blur(4px);
+        }
+
+        .gpa-ring {
+            --pct: 0;
+            --ring-color: #94a3b8;
+            --track-bg: rgba(255, 255, 255, 0.14);
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            background: conic-gradient(var(--ring-color) calc(var(--pct) * 1%), var(--track-bg) 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.35s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .gpa-ring-inner {
+            width: 66px;
+            height: 66px;
+            border-radius: 50%;
+            background: #122e22;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .gpa-ring-val {
+            font-size: 0.95rem;
+            font-weight: 900;
+            line-height: 1.15;
+        }
+
+        .gpa-ring-status {
+            font-size: 0.65rem;
+            font-weight: 800;
+            margin-top: 2px;
+        }
+
+        .gpa-ring-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            text-align: right;
+        }
+
+        .gpa-ring-title {
+            font-size: 0.9rem;
+            font-weight: 900;
+            color: #ffffff;
+        }
+
+        .gpa-ring-sub {
+            font-size: 0.74rem;
+            color: #d1fae5;
+            font-weight: 700;
+        }
+
+        .tier-pill {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            width: fit-content;
+            margin-top: 2px;
+        }
+
+        .tier-high {
+            background: rgba(34, 197, 94, 0.22);
+            color: #86efac;
+            border: 1px solid rgba(74, 222, 128, 0.45);
+        }
+
+        .tier-mid {
+            background: rgba(250, 204, 21, 0.22);
+            color: #fde047;
+            border: 1px solid rgba(250, 204, 21, 0.45);
+        }
+
+        .tier-low {
+            background: rgba(248, 113, 113, 0.24);
+            color: #fca5a5;
+            border: 1px solid rgba(248, 113, 113, 0.5);
+        }
+
+        .tier-neutral {
+            background: rgba(148, 163, 184, 0.2);
+            color: #e2e8f0;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .dash-card {
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 8px 6px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .dash-card .label {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            margin-bottom: 2px;
+        }
+
+        .dash-card .value {
+            font-size: 0.98rem;
+            font-weight: 900;
+            color: #80ed99;
+        }
+
+        .dash-card .sub-value {
+            font-size: 0.68rem;
+            color: #e2e8f0;
+            margin-top: 2px;
+            font-weight: 700;
         }
 
         /* Diagnostic & Recommendation Panel */
@@ -357,47 +517,6 @@
             gap: 6px;
         }
 
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 7px;
-            background: linear-gradient(135deg, #1b4332, #2d6a4f);
-            color: #ffffff;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 14px;
-            box-shadow: 0 4px 14px rgba(27, 67, 50, 0.18);
-        }
-
-        .dash-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 8px 4px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .dash-card .label {
-            font-size: 0.65rem;
-            opacity: 0.9;
-            margin-bottom: 3px;
-        }
-
-        .dash-card .value {
-            font-size: 0.92rem;
-            font-weight: 900;
-            color: #80ed99;
-        }
-
-        .dash-card .sub-value {
-            font-size: 0.68rem;
-            color: #e2e8f0;
-            margin-top: 2px;
-            font-weight: 700;
-        }
-
         .sem-nav-bar {
             display: flex;
             flex-wrap: wrap;
@@ -407,7 +526,7 @@
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             padding: 10px 12px;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 14px;
         }
 
@@ -664,7 +783,7 @@
 
         .table-responsive {
             overflow-x: auto;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 1px solid #e5e7eb;
             margin-bottom: 14px;
             -webkit-overflow-scrolling: touch;
@@ -954,8 +1073,11 @@
         }
 
         @media (max-width: 680px) {
+            .circles-row {
+                grid-template-columns: 1fr;
+            }
             .dashboard-grid {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(2, 1fr);
             }
             .action-btns-row {
                 grid-template-columns: 1fr;
@@ -969,9 +1091,6 @@
         }
 
         @media (max-width: 420px) {
-            .dashboard-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
             .modal-actions {
                 grid-template-columns: 1fr;
             }
@@ -1062,37 +1181,59 @@
             </button>
         </div>
 
-        <!-- Live Dashboard -->
-        <div id="liveDashboard" class="dashboard-grid" style="display: none;">
-            <div class="dash-card">
-                <div class="label">المعدل الفصلي</div>
-                <div class="value" id="dashSemPct">0.0%</div>
-                <div class="sub-value" id="dashSemRating">-</div>
+        <!-- Live Dashboard with Circular GPA Rings -->
+        <div id="liveDashboard" class="dashboard-shell" style="display: none;">
+            <div class="circles-row">
+                <div class="circular-gpa-card">
+                    <div class="gpa-ring" id="semGpaRing">
+                        <div class="gpa-ring-inner">
+                            <div class="gpa-ring-val" id="dashSemPct">0.0%</div>
+                            <div class="gpa-ring-status" id="dashSemRingLabel">-</div>
+                        </div>
+                    </div>
+                    <div class="gpa-ring-meta">
+                        <div class="gpa-ring-title">المعدل الفصلي</div>
+                        <div class="gpa-ring-sub" id="dashSemRatingSub">التقدير: -</div>
+                        <span class="tier-pill tier-neutral" id="dashSemTierBadge">بانتظار الدرجات</span>
+                    </div>
+                </div>
+
+                <div class="circular-gpa-card">
+                    <div class="gpa-ring" id="cumGpaRing">
+                        <div class="gpa-ring-inner">
+                            <div class="gpa-ring-val" id="dashCumPct">0.0%</div>
+                            <div class="gpa-ring-status" id="dashCumRingLabel">-</div>
+                        </div>
+                    </div>
+                    <div class="gpa-ring-meta">
+                        <div class="gpa-ring-title">المعدل التراكمي</div>
+                        <div class="gpa-ring-sub" id="dashCumRatingSub">التقدير العام: -</div>
+                        <span class="tier-pill tier-neutral" id="dashCumTierBadge">بانتظار الدرجات</span>
+                    </div>
+                </div>
             </div>
-            <div class="dash-card">
-                <div class="label">المعدل التراكمي</div>
-                <div class="value" id="dashCumPct">0.0%</div>
-                <div class="sub-value" id="dashCumRating">-</div>
-            </div>
-            <div class="dash-card">
-                <div class="label">التقدير العام</div>
-                <div class="value" id="dashOverallRating">-</div>
-                <div class="sub-value">التراكمي</div>
-            </div>
-            <div class="dash-card">
-                <div class="label">الساعات المجتازة</div>
-                <div class="value" id="dashPassedCr">0</div>
-                <div class="sub-value">من 156 ساعة</div>
-            </div>
-            <div class="dash-card">
-                <div class="label">غير المجتازة</div>
-                <div class="value" id="dashFailedCr" style="color: #fca5a5;">0</div>
-                <div class="sub-value">أقل من 50</div>
-            </div>
-            <div class="dash-card">
-                <div class="label">الساعات المتبقية</div>
-                <div class="value" id="dashRemainingCr" style="color: #fde68a;">156</div>
-                <div class="sub-value">للتخرج</div>
+
+            <div class="dashboard-grid">
+                <div class="dash-card">
+                    <div class="label">التقدير العام</div>
+                    <div class="value" id="dashOverallRating">-</div>
+                    <div class="sub-value">التراكمي</div>
+                </div>
+                <div class="dash-card">
+                    <div class="label">الساعات المجتازة</div>
+                    <div class="value" id="dashPassedCr">0</div>
+                    <div class="sub-value">من 156 ساعة</div>
+                </div>
+                <div class="dash-card">
+                    <div class="label">غير المجتازة</div>
+                    <div class="value" id="dashFailedCr" style="color: #fca5a5;">0</div>
+                    <div class="sub-value">أقل من 50</div>
+                </div>
+                <div class="dash-card">
+                    <div class="label">الساعات المتبقية</div>
+                    <div class="value" id="dashRemainingCr" style="color: #fde68a;">156</div>
+                    <div class="sub-value">للتخرج</div>
+                </div>
             </div>
         </div>
 
@@ -1754,6 +1895,61 @@
 
     let pendingReturnAction = null;
 
+    // --- Circular GPA Color Tier Helper ---
+    function getGpaColorTier(pct, hasActiveCourses) {
+        if (!hasActiveCourses) {
+            return {
+                color: "#94a3b8",
+                label: "-",
+                badgeText: "بانتظار الدرجات",
+                badgeClass: "tier-neutral"
+            };
+        }
+        if (pct >= 80) {
+            return {
+                color: "#22c55e",
+                label: "متفوق",
+                badgeText: "معدل متفوق",
+                badgeClass: "tier-high"
+            };
+        }
+        if (pct >= 60) {
+            return {
+                color: "#eab308",
+                label: "متوسط",
+                badgeText: "معدل متوسط",
+                badgeClass: "tier-mid"
+            };
+        }
+        return {
+            color: "#ef4444",
+            label: "ضعيف",
+            badgeText: "معدل ضعيف",
+            badgeClass: "tier-low"
+        };
+    }
+
+    function applyCircularGpaStyle(ringId, pct, hasActiveCourses, ringLabelId, tierBadgeId) {
+        const ringEl = document.getElementById(ringId);
+        const ringLabelEl = document.getElementById(ringLabelId);
+        const tierBadgeEl = document.getElementById(tierBadgeId);
+        const tier = getGpaColorTier(pct, hasActiveCourses);
+        const clampedPct = hasActiveCourses ? Math.max(0, Math.min(100, pct)) : 0;
+
+        if (ringEl) {
+            ringEl.style.setProperty('--pct', clampedPct.toFixed(1));
+            ringEl.style.setProperty('--ring-color', tier.color);
+        }
+        if (ringLabelEl) {
+            ringLabelEl.textContent = tier.label;
+            ringLabelEl.style.color = tier.color;
+        }
+        if (tierBadgeEl) {
+            tierBadgeEl.textContent = tier.badgeText;
+            tierBadgeEl.className = `tier-pill ${tier.badgeClass}`;
+        }
+    }
+
     // --- Strengths, Weaknesses & Track Recommendation ---
     function analyzeSem1Sem2Performance() {
         const collected = [];
@@ -2067,7 +2263,7 @@
         state.currentSem = "sem1";
         state.visitedSems.add("sem1");
 
-        document.getElementById('liveDashboard').style.display = "grid";
+        document.getElementById('liveDashboard').style.display = "block";
         showSection('step2');
         renderSemesterView();
     }
@@ -3174,10 +3370,12 @@
         const cumM = computeCumulativeMetrics();
 
         document.getElementById('dashSemPct').textContent = `${semM.pctFormatted}%`;
-        document.getElementById('dashSemRating').textContent = semM.rating;
+        document.getElementById('dashSemRatingSub').textContent = `التقدير: ${semM.rating}`;
+        applyCircularGpaStyle('semGpaRing', semM.pct, semM.activeCredits > 0, 'dashSemRingLabel', 'dashSemTierBadge');
 
         document.getElementById('dashCumPct').textContent = `${cumM.cumPctFormatted}%`;
-        document.getElementById('dashCumRating').textContent = cumM.rating;
+        document.getElementById('dashCumRatingSub').textContent = `التقدير العام: ${cumM.rating}`;
+        applyCircularGpaStyle('cumGpaRing', cumM.cumPct, cumM.totalActiveCredits > 0, 'dashCumRingLabel', 'dashCumTierBadge');
 
         document.getElementById('dashOverallRating').textContent = cumM.rating;
         document.getElementById('dashPassedCr').textContent = cumM.totalPassedCredits;
