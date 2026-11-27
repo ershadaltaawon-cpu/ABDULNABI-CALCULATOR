@@ -255,8 +255,8 @@
             --pct: 0;
             --ring-color: #94a3b8;
             --track-bg: rgba(255, 255, 255, 0.14);
-            width: 84px;
-            height: 84px;
+            width: 86px;
+            height: 86px;
             border-radius: 50%;
             background: conic-gradient(var(--ring-color) calc(var(--pct) * 1%), var(--track-bg) 0);
             display: flex;
@@ -268,8 +268,8 @@
         }
 
         .gpa-ring-inner {
-            width: 66px;
-            height: 66px;
+            width: 68px;
+            height: 68px;
             border-radius: 50%;
             background: #122e22;
             display: flex;
@@ -280,7 +280,7 @@
         }
 
         .gpa-ring-val {
-            font-size: 0.95rem;
+            font-size: 0.94rem;
             font-weight: 900;
             line-height: 1.15;
         }
@@ -320,20 +320,32 @@
             margin-top: 2px;
         }
 
-        .tier-high {
+        .tier-blue {
+            background: rgba(59, 130, 246, 0.24);
+            color: #93c5fd;
+            border: 1px solid rgba(96, 165, 250, 0.5);
+        }
+
+        .tier-green {
             background: rgba(34, 197, 94, 0.22);
             color: #86efac;
             border: 1px solid rgba(74, 222, 128, 0.45);
         }
 
-        .tier-mid {
+        .tier-yellow {
             background: rgba(250, 204, 21, 0.22);
             color: #fde047;
             border: 1px solid rgba(250, 204, 21, 0.45);
         }
 
-        .tier-low {
-            background: rgba(248, 113, 113, 0.24);
+        .tier-orange {
+            background: rgba(249, 115, 22, 0.24);
+            color: #fdba74;
+            border: 1px solid rgba(251, 146, 60, 0.5);
+        }
+
+        .tier-red {
+            background: rgba(239, 68, 68, 0.24);
             color: #fca5a5;
             border: 1px solid rgba(248, 113, 113, 0.5);
         }
@@ -1896,6 +1908,7 @@
     let pendingReturnAction = null;
 
     // --- Circular GPA Color Tier Helper ---
+    // Red: < 60% | Orange: 60% - 69.9% | Yellow: 70% - 79.9% | Green: 80% - 89.9% | Blue: >= 90%
     function getGpaColorTier(pct, hasActiveCourses) {
         if (!hasActiveCourses) {
             return {
@@ -1905,27 +1918,43 @@
                 badgeClass: "tier-neutral"
             };
         }
+        if (pct >= 90) {
+            return {
+                color: "#3b82f6",
+                label: "ممتاز",
+                badgeText: "متفوق / ممتاز",
+                badgeClass: "tier-blue"
+            };
+        }
         if (pct >= 80) {
             return {
                 color: "#22c55e",
-                label: "متفوق",
-                badgeText: "معدل متفوق",
-                badgeClass: "tier-high"
+                label: "جيد جداً",
+                badgeText: "جيد جداً",
+                badgeClass: "tier-green"
+            };
+        }
+        if (pct >= 70) {
+            return {
+                color: "#eab308",
+                label: "جيد",
+                badgeText: "جيد",
+                badgeClass: "tier-yellow"
             };
         }
         if (pct >= 60) {
             return {
-                color: "#eab308",
+                color: "#f97316",
                 label: "متوسط",
-                badgeText: "معدل متوسط",
-                badgeClass: "tier-mid"
+                badgeText: "متوسط",
+                badgeClass: "tier-orange"
             };
         }
         return {
             color: "#ef4444",
-            label: "ضعيف",
-            badgeText: "معدل ضعيف",
-            badgeClass: "tier-low"
+            label: "متدني",
+            badgeText: "متدني / غير مجتاز",
+            badgeClass: "tier-red"
         };
     }
 
